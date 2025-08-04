@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import cast
 from main.components.main_window import MainWindow, MainWindowSignals
-from main.components.widget_builder.widget_builder import Properties, build
 from main.models.main_model import MainModel
 
 from gi.repository import Gtk, GLib, Gio
@@ -17,22 +16,19 @@ class MainWindowController:
             MainWindowSignals.FILES_PICKER_REQUESTED,
             self.__on_files_picker_requested,
         )
-        self.__files_picker: Gtk.FileDialog = build(
-            Gtk.FileDialog
-            + Properties(
-                title="Select files to rename",
-                modal=True,
-            )
+        self.__files_picker = Gtk.FileDialog(
+            title="Select files to rename",
+            modal=True,
         )
 
-    def __on_files_picker_requested(self):
+    def __on_files_picker_requested(self, _source_object):
         """Make the user select files to rename."""
         self.__files_picker.open_multiple(
             parent=self.__view.get_root(),
             callback=self.__on_files_picked,
         )
 
-    def __on_files_picked(self, _source_object, result: Gio.AsyncResult, _data):
+    def __on_files_picked(self, _source_object, result: Gio.AsyncResult):
         """
         Handle the files picked by the user.
 
@@ -53,6 +49,7 @@ class MainWindowController:
                 is not None
             )
         ]
+        self.__view.update_files_view(file_paths=self.__model.file_paths_to_rename)
 
     def present(self):
         """Present the main window"""

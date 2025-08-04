@@ -1,4 +1,5 @@
 from enum import StrEnum
+from pathlib import Path
 from gi.repository import Adw, Gtk, GObject
 
 from main.components.widget_builder.widget_builder import (
@@ -68,10 +69,10 @@ class MainWindow(Adw.ApplicationWindow):
         """Emit signal when files picker button is clicked"""
         self.emit(MainWindowSignals.FILES_PICKER_REQUESTED)
 
-    def update_files_view_from_model(self):
-        """Update the files view based on the model's file paths to rename."""
+    def update_files_view(self, file_paths: list[Path]) -> None:
+        """Update the files view with the file paths to rename."""
         self.__file_paths_view.remove_all()
-        for file_path in self.__model.file_paths_to_rename:
+        for file_path in file_paths:
             # TODO better display of file paths, right now just a label
             label = build(Gtk.Label + Properties(label=str(file_path)))
             self.__file_paths_view.append(label)
