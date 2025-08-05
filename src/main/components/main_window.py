@@ -1,28 +1,17 @@
-from enum import StrEnum
-from pathlib import Path
-from gi.repository import Adw, Gtk, GObject
+from gi.repository import Adw, Gtk
 
+from main.components.empty_page import EmptyPage
+from main.components.renaming_page import RenamingPage
 from main.components.widget_builder.widget_builder import (
     Children,
     TypedChild,
     build,
     Properties,
-    Handlers,
 )
-
-
-class MainWindowSignals(StrEnum):
-    """Signals emitted by the MainWindow."""
-
-    FILES_PICKER_REQUESTED = "files-picker-requested"
 
 
 class MainWindow(Adw.ApplicationWindow):
     """MVC view for the main window of the application."""
-
-    @GObject.Signal(name=MainWindowSignals.FILES_PICKER_REQUESTED)
-    def files_picker_requested(self):
-        """Signal emitted when the file picker button is clicked."""
 
     def __build(self):
         """Build the main window layout"""
@@ -30,33 +19,20 @@ class MainWindow(Adw.ApplicationWindow):
         header_bar_title = build(Adw.WindowTitle + Properties(title="Renamer"))
         header_bar = build(Adw.HeaderBar + Properties(title_widget=header_bar_title))
 
-        file_picker_button = build(
-            Gtk.Button
-            + Properties(css_classes=[".suggested-action"])
-            + Handlers(clicked=self.__on_files_picker_clicked)
+        self.empty_view = build(EmptyPage + Properties(can_pop=False))
+        self.renaming_view = build(RenamingPage)
+        self.views = build(
+            Adw.NavigationView
             + Children(
-                Adw.ButtonContent
-                + Properties(
-                    icon_name="document-open-symbolic",
-                    label="Select files to rename",
-                )
+                self.empty_view,
+                self.renaming_view,
             )
         )
-        self.__file_paths_view = build(Gtk.ListBox)
-        content_area = build(
-            Gtk.Box
-            + Properties(orientation=Gtk.Orientation.VERTICAL)
-            + Children(
-                file_picker_button,
-                self.__file_paths_view,
-            )
-        )
-
         self.set_content(
             build(
                 Adw.ToolbarView
                 + TypedChild("top", header_bar)
-                + TypedChild("content", content_area)
+                + TypedChild("content", self.views)
             )
         )
         self.set_default_size(800, 600)
@@ -65,14 +41,29 @@ class MainWindow(Adw.ApplicationWindow):
         super().__init__(application=application)
         self.__build()
 
-    def __on_files_picker_clicked(self, _emitter) -> None:
-        """Emit signal when files picker button is clicked"""
-        self.emit(MainWindowSignals.FILES_PICKER_REQUESTED)
+    def __build_path_widget(self, path: str) -> Gtk.ListBoxRow:
+        # TODO better display of file paths, right now just a label
+        return build(
+            Gtk.ListBoxRow
+            + Children(
+                Gtk.Label
+                + Properties(
+                    label=path,
+                    justify=Gtk.Justification.LEFT,
+                )
+            )
+        )
 
-    def update_files_view(self, file_paths: list[Path]) -> None:
-        """Update the files view with the file paths to rename."""
-        self.__file_paths_view.remove_all()
-        for file_path in file_paths:
-            # TODO better display of file paths, right now just a label
-            label = build(Gtk.Label + Properties(label=str(file_path)))
-            self.__file_paths_view.append(label)
+    def update_picked_paths(self, paths: list[str]):
+        """Update the picked paths list with the provided paths."""
+        self.__current_paths.remove_all()
+        for path in paths:
+            item = self.__build_path_widget(path)
+            self.__current_paths.append(item)
+
+    def update_renamed_paths(self, paths: list[str]):
+        """Update the renamed paths list with the provided paths."""
+        self.__new_paths.remove_all()
+        for path in paths:
+            item = self.__build_path_widget(path)
+            self.__new_paths.append(item)

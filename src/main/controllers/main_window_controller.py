@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import cast
-from main.components.main_window import MainWindow, MainWindowSignals
+from main.signals.signals import Signals
+from main.components.main_window import MainWindow
 from main.models.main_model import MainModel
 
 from gi.repository import Gtk, GLib, Gio
@@ -13,8 +14,12 @@ class MainWindowController:
         self.__model = model
         self.__view = view
         self.__view.connect(
-            MainWindowSignals.FILES_PICKER_REQUESTED,
+            Signals.FILES_PICKER_REQUESTED,
             self.__on_files_picker_requested,
+        )
+        self.__view.connect(
+            Signals.REGEX_CHANGED,
+            self.__on_regex_changed,
         )
         self.__files_picker = Gtk.FileDialog(
             title="Select files to rename",
@@ -27,6 +32,21 @@ class MainWindowController:
             parent=self.__view.get_root(),
             callback=self.__on_files_picked,
         )
+
+    def __on_regex_changed(self, _source_object, regex_text: str):
+        """Handle the regex text change and update the model."""
+        self.__model.regex_text = regex_text
+        self.recompute_renamed_paths()
+
+    def recompute_renamed_paths(self):
+        """Recompute the renamed paths based on the current regex."""
+
+        # TODO implement the logic to recompute the renamed paths here
+        self.__model.renamed_file_paths = self.__model.picked_file_paths.copy()
+
+        # Update the view with the new paths
+        self.__view.update_picked_paths(self.__model.picked_file_paths)
+        self.__view.update_renamed_paths(self.__model.renamed_file_paths)
 
     def __on_files_picked(self, _source_object, result: Gio.AsyncResult):
         """
@@ -41,7 +61,7 @@ class MainWindowController:
         except GLib.Error:
             return
 
-        self.__model.file_paths_to_rename = [
+        self.__model.picked_file_paths = [
             Path(file_path)
             for i in range(paths_list_model.get_n_items())
             if (
@@ -49,7 +69,7 @@ class MainWindowController:
                 is not None
             )
         ]
-        self.__view.update_files_view(file_paths=self.__model.file_paths_to_rename)
+        self.__view.update_files_view(file_paths=self.__model.picked_file_paths)
 
     def present(self):
         """Present the main window"""

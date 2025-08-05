@@ -185,8 +185,10 @@ class WidgetBuilder(Generic[_BuiltWidget]):
                 raise e
             widget.set_content(resolved[0])
 
-        # Adw.ViewStack
-        elif isinstance(widget, Adw.ViewStack):
+        # Adw.ViewStack, Adw.NavigationView
+        elif isinstance(widget, Adw.ViewStack) or isinstance(
+            widget, Adw.NavigationView
+        ):
             for child in self.__check_no_null_children(widget, resolved):
                 widget.add(child)
 
