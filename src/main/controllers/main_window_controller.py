@@ -65,8 +65,8 @@ class MainWindowController:
                 is not None
             )
         ]
-        self.__view.update_picked_paths(paths=self.__model.picked_file_paths)
         self.recompute_renamed_paths()
+        self.__view.update_picked_paths(paths=self.__model.picked_file_paths)
         self.__view.update_renamed_paths(paths=self.__model.renamed_file_paths)
 
     def present(self):
