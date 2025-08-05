@@ -201,6 +201,11 @@ class WidgetBuilder(Generic[_BuiltWidget]):
             if isinstance(content, Widget):
                 widget.set_content(content)
 
+        # Gtk.HeaderBar, Adw.HeaderBar
+        elif isinstance(widget, Gtk.HeaderBar) or isinstance(widget, Adw.HeaderBar):
+            self.__check_n_children(widget, 1, resolved)
+            widget.set_title_widget(resolved[0])
+
         # Any widget with "set_child"
         elif getattr(widget, "set_child", None) is not None:
             self.__check_n_children(widget, 1, resolved)
