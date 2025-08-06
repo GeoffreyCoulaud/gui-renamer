@@ -1,12 +1,13 @@
 from enum import StrEnum
-from gi.repository import Adw, Gtk, GObject
+
+from gi.repository import Adw, GObject, Gtk
 
 from main.components.widget_builder.widget_builder import (
     Children,
     Handlers,
+    Properties,
     TypedChild,
     build,
-    Properties,
 )
 from main.signals import Signals
 
@@ -106,13 +107,7 @@ class MainWindow(Adw.ApplicationWindow):
                     Gtk.Button
                     + Properties(css_classes=["suggested-action"])
                     + Handlers(clicked=self.__on_files_picker_requested)
-                    + Children(
-                        Adw.ButtonContent
-                        + Properties(
-                            icon_name="document-open-symbolic",
-                            label="Select files to rename",
-                        )
-                    )
+                    + Children(Gtk.Label + Properties(label="Select files to rename"))
                 )
             )
         )
