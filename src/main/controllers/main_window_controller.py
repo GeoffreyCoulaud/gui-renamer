@@ -1,9 +1,10 @@
 from typing import cast
-from main.signals import Signals
+
+from gi.repository import Gio, GLib, Gtk
+
 from main.components.main_window import MainWindow
 from main.models.main_model import MainModel
-
-from gi.repository import Gtk, GLib, Gio
+from main.signals import Signals
 
 
 class MainWindowController:
@@ -12,13 +13,10 @@ class MainWindowController:
     def __init__(self, model: MainModel, view: MainWindow):
         self.__model = model
         self.__view = view
+        self.__view.connect(Signals.PICK_FILES, self.__on_files_picker_requested)
+        self.__view.connect(Signals.REGEX_CHANGED, self.__on_regex_changed)
         self.__view.connect(
-            Signals.PICK_FILES,
-            self.__on_files_picker_requested,
-        )
-        self.__view.connect(
-            Signals.REGEX_CHANGED,
-            self.__on_regex_changed,
+            Signals.REPLACE_PATTERN_CHANGED, self.__on_replace_pattern_changed
         )
         self.__files_picker = Gtk.FileDialog(
             title="Select files to rename",
@@ -35,6 +33,12 @@ class MainWindowController:
     def __on_regex_changed(self, _source_object, regex_text: str):
         """Handle the regex text change and update the model."""
         self.__model.regex_text = regex_text
+        self.recompute_renamed_paths()
+        self.__view.update_renamed_paths(paths=self.__model.renamed_file_paths)
+
+    def __on_replace_pattern_changed(self, _source_object, replace_pattern: str):
+        """Handle the replace pattern change and update the model."""
+        self.__model.replace_pattern = replace_pattern
         self.recompute_renamed_paths()
         self.__view.update_renamed_paths(paths=self.__model.renamed_file_paths)
 

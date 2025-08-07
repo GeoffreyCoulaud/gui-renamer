@@ -30,18 +30,30 @@ class MainWindow(Adw.ApplicationWindow):
     def signal_regex_changed(self, _regex_text: str):
         pass
 
+    @GObject.Signal(name=Signals.REPLACE_PATTERN_CHANGED, arg_types=(str,))
+    def signal_replace_pattern_changed(self, _replace_pattern: str):
+        pass
+
     def __build_renaming_page(self) -> Adw.NavigationPage:
         margin = 12
         boxed_list_properties = Properties(
             css_classes=["boxed-list"],
             selection_mode=Gtk.SelectionMode.NONE,
         )
+        editable_suffix = build(Adw.Bin)
 
         # Regex section
         self.__regex_editable: Adw.EntryRow = build(
             Adw.EntryRow
             + Properties(title="Regex Pattern", css_classes=["monospace"])
             + Handlers(changed=self.__on_regex_changed)
+            + TypedChild("suffix", editable_suffix)
+        )
+        self.__replace_pattern_editable: Adw.EntryRow = build(
+            Adw.EntryRow
+            + Properties(title="Replace Pattern", css_classes=["monospace"])
+            + Handlers(changed=self.__on_replace_pattern_changed)
+            + TypedChild("suffix", editable_suffix)
         )
         regex_section = build(
             Gtk.ListBox
@@ -52,7 +64,10 @@ class MainWindow(Adw.ApplicationWindow):
                 margin_start=margin,
                 margin_end=margin,
             )
-            + Children(self.__regex_editable)
+            + Children(
+                self.__regex_editable,
+                self.__replace_pattern_editable,
+            )
         )
 
         # Paths new path section
@@ -105,7 +120,7 @@ class MainWindow(Adw.ApplicationWindow):
                 )
                 + Children(
                     Gtk.Button
-                    + Properties(css_classes=["suggested-action"])
+                    + Properties(css_classes=["suggested-action", "pill"])
                     + Handlers(clicked=self.__on_files_picker_requested)
                     + Children(Gtk.Label + Properties(label="Select files to rename"))
                 )
@@ -142,6 +157,9 @@ class MainWindow(Adw.ApplicationWindow):
     def __on_regex_changed(self, regex_text: str, *args):
         self.emit(Signals.REGEX_CHANGED, regex_text)
 
+    def __on_replace_pattern_changed(self, replace_pattern: str, *args):
+        self.emit(Signals.REPLACE_PATTERN_CHANGED, replace_pattern)
+
     def __init__(self, application: Adw.Application):
         super().__init__(application=application)
         self.__build()
@@ -165,7 +183,6 @@ class MainWindow(Adw.ApplicationWindow):
             self.__renamed_paths.append(item)
 
     def __build_path_widget(self, path: str) -> Gtk.ListBoxRow:
-        # TODO better display of file paths, right now just a label
         margin = 8
         return build(
             Gtk.ListBoxRow

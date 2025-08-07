@@ -6,3 +6,4 @@ class Signals(StrEnum):
 
     PICK_FILES = "files-picker-requested"
     REGEX_CHANGED = "regex-changed"
+    REPLACE_PATTERN_CHANGED = "replace-pattern-changed"
