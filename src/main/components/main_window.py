@@ -2,7 +2,7 @@ from enum import StrEnum
 
 from gi.repository import Adw, GObject, Gtk
 
-from main.components.widget_builder.widget_builder import (
+from main.widget_builder.widget_builder import (
     Children,
     Handlers,
     Properties,
