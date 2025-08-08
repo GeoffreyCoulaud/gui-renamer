@@ -1,201 +1,118 @@
-from enum import StrEnum
+from gi.repository import Adw, GObject
 
-from gi.repository import Adw, GObject, Gtk
-
+from main.components.empty_page import EmptyPage
+from main.components.renaming_page import RenamingPage
 from main.widget_builder.widget_builder import (
     Children,
-    Handlers,
+    InboundProperty,
     Properties,
+    OutboundProperty,
+    Reemit,
     TypedChild,
     build,
 )
 from main.signals import Signals
 
 
-class PageTags(StrEnum):
-    """Enum for the names of the pages in the main window."""
-
-    EMPTY_PAGE = "empty-page"
-    RENAMING_PAGE = "renaming-page"
-
-
 class MainWindow(Adw.ApplicationWindow):
-    """MVC view for the main window of the application."""
+    """
+    MVC view for the main window of the application.
+    It reemits signals to the controller from the inner components.
+    """
+
+    # --- PyGobject things
 
     @GObject.Signal(name=Signals.PICK_FILES)
     def signal_pick_files(self):
         pass
 
-    @GObject.Signal(name=Signals.REGEX_CHANGED, arg_types=(str,))
-    def signal_regex_changed(self, _regex_text: str):
-        pass
+    __picked_paths: list[str]
 
-    @GObject.Signal(name=Signals.REPLACE_PATTERN_CHANGED, arg_types=(str,))
-    def signal_replace_pattern_changed(self, _replace_pattern: str):
-        pass
+    @GObject.Property(type=object)
+    def picked_paths(self) -> list[str]:
+        return self.__picked_paths
 
-    def __build_renaming_page(self) -> Adw.NavigationPage:
-        margin = 12
-        boxed_list_properties = Properties(
-            css_classes=["boxed-list"],
-            selection_mode=Gtk.SelectionMode.NONE,
-        )
-        editable_suffix = build(Adw.Bin)
+    @picked_paths.setter
+    def picked_paths(self, paths: list[str]):
+        self.__picked_paths = paths
+        self.__on_picked_paths_changed()
 
-        # Regex section
-        self.__regex_editable: Adw.EntryRow = build(
-            Adw.EntryRow
-            + Properties(title="Regex Pattern", css_classes=["monospace"])
-            + Handlers(changed=self.__on_regex_changed)
-            + TypedChild("suffix", editable_suffix)
-        )
-        self.__replace_pattern_editable: Adw.EntryRow = build(
-            Adw.EntryRow
-            + Properties(title="Replace Pattern", css_classes=["monospace"])
-            + Handlers(changed=self.__on_replace_pattern_changed)
-            + TypedChild("suffix", editable_suffix)
-        )
-        regex_section = build(
-            Gtk.ListBox
-            + boxed_list_properties
-            + Properties(
-                margin_top=margin,
-                margin_bottom=margin / 2,
-                margin_start=margin,
-                margin_end=margin,
-            )
-            + Children(
-                self.__regex_editable,
-                self.__replace_pattern_editable,
-            )
-        )
+    __renamed_paths: list[str]
 
-        # Paths new path section
-        self.__picked_paths = build(
-            Gtk.ListBox
-            + boxed_list_properties
-            + Properties(
-                margin_top=margin / 2,
-                margin_bottom=margin,
-                margin_start=margin,
-                margin_end=margin / 2,
-            )
-        )
-        self.__renamed_paths = build(
-            Gtk.ListBox
-            + boxed_list_properties
-            + Properties(
-                margin_top=margin / 2,
-                margin_bottom=margin,
-                margin_start=margin / 2,
-                margin_end=margin,
-            )
-        )
-        paths_section = build(
-            Gtk.Box
-            + Properties(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=True)
-            + Children(self.__picked_paths, self.__renamed_paths)
-        )
+    @GObject.Property(type=object)
+    def renamed_paths(self) -> list[str]:
+        return self.__renamed_paths
 
-        return build(
-            Adw.NavigationPage
-            + Properties(can_pop=True, tag=PageTags.RENAMING_PAGE, title="Rename")
-            + Children(
-                Gtk.Box
-                + Properties(orientation=Gtk.Orientation.VERTICAL)
-                + Children(regex_section, paths_section)
-            )
-        )
+    @renamed_paths.setter
+    def renamed_paths(self, paths: list[str]):
+        self.__renamed_paths = paths
 
-    def __build_empty_page(self) -> Adw.NavigationPage:
-        return build(
-            Adw.NavigationPage
-            + Properties(can_pop=False, tag=PageTags.EMPTY_PAGE, title="Select Files")
-            + Children(
-                Adw.StatusPage
-                + Properties(
-                    title="No files selected",
-                    description="Start renaming by first selecting files",
-                    icon_name="document-open-symbolic",
-                )
-                + Children(
-                    Gtk.Button
-                    + Properties(css_classes=["suggested-action", "pill"])
-                    + Handlers(clicked=self.__on_files_picker_requested)
-                    + Children(Gtk.Label + Properties(label="Select files to rename"))
-                )
-            )
-        )
+    __regex: list[str]
+
+    @GObject.Property(type=object)
+    def regex(self) -> list[str]:
+        return self.__regex
+
+    @regex.setter
+    def regex(self, paths: list[str]):
+        self.__regex = paths
+
+    __replace_pattern: list[str]
+
+    @GObject.Property(type=object)
+    def replace_pattern(self) -> list[str]:
+        return self.__replace_pattern
+
+    @replace_pattern.setter
+    def replace_pattern(self, paths: list[str]):
+        self.__replace_pattern = paths
+
+    # ---
 
     def __build(self):
         header = Adw.HeaderBar + Children(Adw.WindowTitle + Properties(title="Renamer"))
+        empty_page = build(EmptyPage + Reemit(Signals.PICK_FILES, self))
+        renaming_page = build(
+            RenamingPage
+            + InboundProperty(
+                source=self,
+                source_property="renamed-paths",
+                target_property="renamed-paths",
+            )
+            + InboundProperty(
+                source=self,
+                source_property="picked-paths",
+                target_property="picked-paths",
+            )
+            + OutboundProperty(
+                source_property="regex",
+                target=self,
+                target_property="regex",
+            )
+            + OutboundProperty(
+                source_property="replace-pattern",
+                target=self,
+                target_property="replace-pattern",
+            )
+        )
         self.__navigation: Adw.NavigationView = build(
-            Adw.NavigationView
-            + Children(
-                self.__build_empty_page(),
-                self.__build_renaming_page(),
-            )
+            Adw.NavigationView + Children(empty_page, renaming_page)
         )
-        self.set_content(
-            build(
-                Adw.ToolbarView
-                + TypedChild(
-                    "top",
-                    header,
-                )
-                + TypedChild(
-                    "content",
-                    Adw.ClampScrollable + Children(self.__navigation),
-                )
-            )
+        content = build(
+            Adw.ToolbarView
+            + TypedChild("top", header)
+            + TypedChild("content", Adw.ClampScrollable + Children(self.__navigation))
         )
+        self.set_content(content)
         self.set_default_size(800, 600)
-
-    def __on_files_picker_requested(self, *args):
-        self.emit(Signals.PICK_FILES)
-
-    def __on_regex_changed(self, regex_text: str, *args):
-        self.emit(Signals.REGEX_CHANGED, regex_text)
-
-    def __on_replace_pattern_changed(self, replace_pattern: str, *args):
-        self.emit(Signals.REPLACE_PATTERN_CHANGED, replace_pattern)
 
     def __init__(self, application: Adw.Application):
         super().__init__(application=application)
         self.__build()
 
-    def update_picked_paths(self, paths: list[str]):
-        """Update the picked paths list with the provided paths."""
-        self.__picked_paths.remove_all()
-        for path in paths:
-            item = self.__build_path_widget(path)
-            self.__picked_paths.append(item)
-        if paths:
-            self.__navigation.push_by_tag(PageTags.RENAMING_PAGE)
+    def __on_picked_paths_changed(self, *_args):
+        """Update the navigation view based on the current paths."""
+        if self.picked_paths:
+            self.__navigation.push_by_tag(RenamingPage.TAG)
         else:
-            self.__navigation.pop_to_tag(PageTags.EMPTY_PAGE)
-
-    def update_renamed_paths(self, paths: list[str]):
-        """Update the renamed paths list with the provided paths."""
-        self.__renamed_paths.remove_all()
-        for path in paths:
-            item = self.__build_path_widget(path)
-            self.__renamed_paths.append(item)
-
-    def __build_path_widget(self, path: str) -> Gtk.ListBoxRow:
-        margin = 8
-        return build(
-            Gtk.ListBoxRow
-            + Children(
-                Gtk.Label
-                + Properties(
-                    label=path,
-                    css_classes=["monospace"],
-                    justify=Gtk.Justification.LEFT,
-                    margin_bottom=margin,
-                    margin_top=margin,
-                    margin_start=margin,
-                    margin_end=margin,
-                )
-            )
-        )
+            self.__navigation.pop_to_tag(EmptyPage.TAG)

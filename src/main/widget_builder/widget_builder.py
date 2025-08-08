@@ -1,11 +1,31 @@
+from dataclasses import dataclass
 import logging
 from collections.abc import Sequence
 from typing import Any, Callable, Generic, Self, TypeVar
 
-from gi.repository import Adw, Gtk
+from gi.repository import Adw, Gtk, GObject
 from gi.repository.Gtk import Widget
 
 _BuiltWidget = TypeVar("_BuiltWidget", bound=Widget)
+
+
+@dataclass
+class InboundBinding:
+    source: GObject.Object
+    source_property: str
+    target_property: str
+    flags: GObject.BindingFlags = GObject.BindingFlags.DEFAULT
+
+
+@dataclass
+class OutboundBinding:
+    source_property: str
+    target: GObject.Object
+    target_property: str
+    flags: GObject.BindingFlags = GObject.BindingFlags.DEFAULT
+
+
+Binding = InboundBinding | OutboundBinding
 
 
 class WidgetBuilder(Generic[_BuiltWidget]):
@@ -22,6 +42,7 @@ class WidgetBuilder(Generic[_BuiltWidget]):
     __properties: dict[str, Any]
     __children: list["WidgetBuilder | Widget | None"]
     __typed_children: list[tuple[str, "WidgetBuilder | Widget"]]
+    __property_bindings: list[Binding]
 
     def __init__(self, widget_class: None | type[_BuiltWidget] = None) -> None:
         super().__init__()
@@ -32,6 +53,7 @@ class WidgetBuilder(Generic[_BuiltWidget]):
         self.__properties = {}
         self.__children = []
         self.__typed_children = []
+        self.__property_bindings = []
 
     # Adders / Setters
 
@@ -79,6 +101,11 @@ class WidgetBuilder(Generic[_BuiltWidget]):
         self.__typed_children.extend(typed_children)
         return self
 
+    def add_property_bindings(self, *bindings: Binding) -> Self:
+        """Add a property binding to the widget builder."""
+        self.__property_bindings.extend(bindings)
+        return self
+
     # Getters
 
     def get_widget_class(self) -> type[_BuiltWidget]:
@@ -99,21 +126,18 @@ class WidgetBuilder(Generic[_BuiltWidget]):
     def get_typed_children(self) -> list[tuple[str, "WidgetBuilder | Widget"]]:
         return self.__typed_children
 
+    def get_property_bindings(self) -> list[Binding]:
+        return self.__property_bindings
+
     # Build helpers
 
     def __apply_properties(self, widget: _BuiltWidget) -> None:
         """Apply a set of properties to a widget"""
         for key, value in self.__properties.items():
             clean_key = key.replace("-", "_")
-            setter_name = f"set_{clean_key}"
-            if not callable(setter := getattr(widget, setter_name)):
-                raise AttributeError(
-                    "Widget type %s doesn't have a setter for property %s"
-                    % (widget.__class__.__name__, key)
-                )
             if key != clean_key:
                 logging.warning("Consider using underscores for property %s", key)
-            setter(value)
+            widget.set_property(clean_key, value)
 
     def __apply_handlers(self, widget: Widget) -> None:
         for signal, handler in self.__handlers.items():
@@ -276,6 +300,28 @@ class WidgetBuilder(Generic[_BuiltWidget]):
                 if t == "header-suffix":
                     widget.set_header_suffix(child)
 
+    def __apply_property_bindings(self, widget: _BuiltWidget) -> None:
+        """Apply property bindings to the widget"""
+        for binding in self.__property_bindings:
+            match binding:
+                case InboundBinding():
+                    binding.source.bind_property(
+                        binding.source_property,
+                        widget,
+                        binding.target_property,
+                        binding.flags,
+                    )
+                case OutboundBinding():
+                    widget.bind_property(
+                        binding.source_property,
+                        binding.target,
+                        binding.target_property,
+                        binding.flags,
+                    )
+                case _:
+                    message = "Unknown binding type %s" % binding.__class__.__name__
+                    raise TypeError(message)
+
     def build(self) -> _BuiltWidget:
         """Build the widget"""
         if not callable(self.__widget_class):
@@ -285,6 +331,7 @@ class WidgetBuilder(Generic[_BuiltWidget]):
         self.__apply_properties(widget)
         self.__apply_children(widget)
         self.__apply_typed_children(widget)
+        self.__apply_property_bindings(widget)
         return widget
 
     def __add__(
@@ -299,12 +346,14 @@ class WidgetBuilder(Generic[_BuiltWidget]):
             .add_properties(**self.get_properties())
             .add_children(*self.get_children())
             .add_typed_children(*self.get_typed_children())
+            .add_property_bindings(*self.get_property_bindings())
             # Add data from other
             .add_arguments(**other.get_arguments())
             .add_handlers(**other.get_handlers())
             .add_properties(**other.get_properties())
             .add_children(*other.get_children())
             .add_typed_children(*other.get_typed_children())
+            .add_property_bindings(*other.get_property_bindings())
         )
 
     def __radd__(self, other: type[Widget]) -> "WidgetBuilder":
@@ -347,6 +396,23 @@ class Handlers(WidgetBuilder):
         self.add_handlers(**handlers)
 
 
+class Reemit(WidgetBuilder):
+    """Attach a signal handler that re-emits the signal on another object"""
+
+    def __init__(
+        self,
+        signal: str,
+        target: GObject.Object,
+        target_signal: str | None = None,
+    ) -> None:
+        super().__init__()
+
+        def handler(_source, *args):
+            target.emit(target_signal or signal, *args)
+
+        self.add_handlers(**{signal: handler})
+
+
 class Children(WidgetBuilder):
     """A list of children to pass to a builder object"""
 
@@ -361,6 +427,56 @@ class TypedChild(WidgetBuilder):
     def __init__(self, t: str, child: "WidgetBuilder | Widget") -> None:
         super().__init__()
         self.add_typed_children((t, child))
+
+
+class OutboundProperty(WidgetBuilder):
+    """
+    A property binding to pass to a builder object.
+
+    Will replicate changes from source_property on the built widget to target_property on the target object.
+    """
+
+    def __init__(
+        self,
+        source_property: str,
+        target: GObject.Object,
+        target_property: str,
+        flags: GObject.BindingFlags = GObject.BindingFlags.DEFAULT,
+    ) -> None:
+        super().__init__()
+        self.add_property_bindings(
+            OutboundBinding(
+                source_property=source_property,
+                target=target,
+                target_property=target_property,
+                flags=flags,
+            )
+        )
+
+
+class InboundProperty(WidgetBuilder):
+    """
+    A property binding to pass to a builder object.
+
+    Will replicate changes made to source_property on the source object to the built widget's target_property.
+    """
+
+    def __init__(
+        self,
+        source: GObject.Object,
+        source_property: str,
+        target_property: str,
+        flags: GObject.BindingFlags = GObject.BindingFlags.DEFAULT,
+    ) -> None:
+        super().__init__()
+        self.add_property_bindings(
+            InboundBinding(
+                source_property=source_property,
+                source=source,
+                target_property=target_property,
+                flags=flags,
+            )
+        )
 
 
 def build(builder: type[_BuiltWidget] | WidgetBuilder[_BuiltWidget]) -> _BuiltWidget:

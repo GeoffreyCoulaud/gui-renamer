@@ -14,9 +14,9 @@ class MainWindowController:
         self.__model = model
         self.__view = view
         self.__view.connect(Signals.PICK_FILES, self.__on_files_picker_requested)
-        self.__view.connect(Signals.REGEX_CHANGED, self.__on_regex_changed)
+        self.__view.connect("notify::regex", self.__on_regex_changed)
         self.__view.connect(
-            Signals.REPLACE_PATTERN_CHANGED, self.__on_replace_pattern_changed
+            "notify::replace-pattern", self.__on_replace_pattern_changed
         )
         self.__files_picker = Gtk.FileDialog(
             title="Select files to rename",
@@ -30,17 +30,17 @@ class MainWindowController:
             callback=self.__on_files_picked,
         )
 
-    def __on_regex_changed(self, _source_object, regex_text: str):
+    def __on_regex_changed(self, _source_object, regex: str):
         """Handle the regex text change and update the model."""
-        self.__model.regex_text = regex_text
+        self.__model.regex = regex
         self.recompute_renamed_paths()
-        self.__view.update_renamed_paths(paths=self.__model.renamed_file_paths)
+        self.__view.renamed_paths = self.__model.renamed_file_paths
 
     def __on_replace_pattern_changed(self, _source_object, replace_pattern: str):
         """Handle the replace pattern change and update the model."""
         self.__model.replace_pattern = replace_pattern
         self.recompute_renamed_paths()
-        self.__view.update_renamed_paths(paths=self.__model.renamed_file_paths)
+        self.__view.renamed_paths = self.__model.renamed_file_paths
 
     def recompute_renamed_paths(self):
         """Recompute the renamed paths based on the current regex."""
@@ -70,8 +70,8 @@ class MainWindowController:
             )
         ]
         self.recompute_renamed_paths()
-        self.__view.update_picked_paths(paths=self.__model.picked_file_paths)
-        self.__view.update_renamed_paths(paths=self.__model.renamed_file_paths)
+        self.__view.picked_paths = self.__model.picked_file_paths
+        self.__view.renamed_paths = self.__model.renamed_file_paths
 
     def present(self):
         """Present the main window"""

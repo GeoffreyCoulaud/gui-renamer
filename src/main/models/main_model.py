@@ -4,5 +4,5 @@ class MainModel:
     def __init__(self):
         self.picked_file_paths: list[str] = []
         self.renamed_file_paths: list[str] = []
-        self.regex_text: str = ""
+        self.regex: str = ""
         self.replace_pattern: str = ""
