@@ -1,10 +1,12 @@
 from enum import StrEnum
+from pathlib import Path
 from gi.repository import Adw, GObject, Gtk
 
 from main.widget_builder.widget_builder import (
     Children,
     Properties,
     OutboundProperty,
+    TypedChild,
     build,
 )
 
@@ -19,6 +21,7 @@ class RenamingPage(Adw.NavigationPage):
         NOTIFY_RENAMED_PATHS = "notify::renamed-paths"
         NOTIFY_REGEX = "notify::regex"
         NOTIFY_REPLACE_PATTERN = "notify::replace-pattern"
+        NOTIFY_APPLY_TO_FULL_PATH = "notify::apply-to-full-path"
         PICK_FILES = "pick-files"
 
     # --- PyGobject things
@@ -27,14 +30,44 @@ class RenamingPage(Adw.NavigationPage):
     picked_paths: list[str] = GObject.Property(type=object)
     regex = GObject.Property(type=str, default="")
     replace_pattern = GObject.Property(type=str, default="")
+    apply_to_full_path: bool = GObject.Property(type=bool, default=False)
 
     # ---
 
     def __build(self):
         margin = 12
-        boxed_list_properties = Properties(
+        BOXED_LIST_PROPERTIES = Properties(
             css_classes=["boxed-list"],
             selection_mode=Gtk.SelectionMode.NONE,
+        )
+        popover = build(
+            Gtk.Popover
+            + Children(
+                Gtk.Box
+                + Properties(orientation=Gtk.Orientation.VERTICAL)
+                + Children(
+                    # TODO add the settings here
+                    Gtk.CheckButton
+                    + Properties(
+                        label="Apply to full path",
+                        active=False,
+                    )
+                    + OutboundProperty(
+                        source_property="active",
+                        target=self,
+                        target_property="apply-to-full-path",
+                    )
+                )
+            )
+        )
+        menu_button = Gtk.MenuButton + Properties(
+            icon_name="open-menu-symbolic",
+            popover=popover,
+        )
+        header = (
+            Adw.HeaderBar
+            + Children(Adw.WindowTitle + Properties(title="Renamer"))
+            + TypedChild("end", menu_button)
         )
 
         # Regex section
@@ -58,7 +91,7 @@ class RenamingPage(Adw.NavigationPage):
         )
         regex_section = build(
             Gtk.ListBox
-            + boxed_list_properties
+            + BOXED_LIST_PROPERTIES
             + Properties(
                 margin_top=margin,
                 margin_bottom=margin / 2,
@@ -74,7 +107,7 @@ class RenamingPage(Adw.NavigationPage):
         # Paths new path section
         self.__picked_paths_listbox: Gtk.ListBox = build(
             Gtk.ListBox
-            + boxed_list_properties
+            + BOXED_LIST_PROPERTIES
             + Properties(
                 margin_top=margin / 2,
                 margin_bottom=margin,
@@ -84,7 +117,7 @@ class RenamingPage(Adw.NavigationPage):
         )
         self.__renamed_paths_listbox: Gtk.ListBox = build(
             Gtk.ListBox
-            + boxed_list_properties
+            + BOXED_LIST_PROPERTIES
             + Properties(
                 margin_top=margin / 2,
                 margin_bottom=margin,
@@ -98,16 +131,25 @@ class RenamingPage(Adw.NavigationPage):
             + Children(self.__picked_paths_listbox, self.__renamed_paths_listbox)
         )
 
-        # Assemble the page
-        box = build(
-            Gtk.Box
-            + Properties(orientation=Gtk.Orientation.VERTICAL)
-            + Children(regex_section, paths_section)
+        content = build(
+            Adw.ToolbarView
+            + TypedChild("top", header)
+            + TypedChild(
+                "content",
+                Adw.ClampScrollable
+                + Children(
+                    Gtk.Box
+                    + Properties(orientation=Gtk.Orientation.VERTICAL)
+                    + Children(regex_section, paths_section)
+                ),
+            )
         )
+
+        # Assemble the page
         self.set_can_pop(True)
         self.set_tag(self.TAG)
         self.set_title("Rename")
-        self.set_child(box)
+        self.set_child(content)
 
     def __init__(self):
         super().__init__()
@@ -129,12 +171,15 @@ class RenamingPage(Adw.NavigationPage):
 
     def __build_path_widget(self, path: str) -> Gtk.ListBoxRow:
         margin = 8
+
+        text = path if self.apply_to_full_path else Path(path).name
+
         return build(
             Gtk.ListBoxRow
             + Children(
                 Gtk.Label
                 + Properties(
-                    label=path,
+                    label=text,
                     css_classes=["monospace"],
                     justify=Gtk.Justification.LEFT,
                     margin_bottom=margin,

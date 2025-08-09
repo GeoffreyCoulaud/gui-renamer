@@ -6,10 +6,8 @@ from main.components.renaming_page import RenamingPage
 from main.widget_builder.widget_builder import (
     Children,
     InboundProperty,
-    Properties,
     OutboundProperty,
     Reemit,
-    TypedChild,
     build,
 )
 
@@ -26,6 +24,7 @@ class MainWindow(Adw.ApplicationWindow):
         NOTIFY_RENAMED_PATHS = "notify::renamed-paths"
         NOTIFY_REGEX = "notify::regex"
         NOTIFY_REPLACE_PATTERN = "notify::replace-pattern"
+        NOTIFY_APPLY_TO_FULL_PATH = "notify::apply-to-full-path"
 
     # --- PyGobject things
 
@@ -37,11 +36,11 @@ class MainWindow(Adw.ApplicationWindow):
     renamed_paths: list[str] = GObject.Property(type=object)
     regex = GObject.Property(type=str, default="")
     replace_pattern = GObject.Property(type=str, default="")
+    apply_to_full_path: bool = GObject.Property(type=bool, default=False)
 
     # ---
 
     def __build(self):
-        header = Adw.HeaderBar + Children(Adw.WindowTitle + Properties(title="Renamer"))
         empty_page = build(
             EmptyPage
             + Reemit(
@@ -72,16 +71,16 @@ class MainWindow(Adw.ApplicationWindow):
                 target=self,
                 target_property="replace-pattern",
             )
+            + OutboundProperty(
+                source_property="apply-to-full-path",
+                target=self,
+                target_property="apply-to-full-path",
+            )
         )
         self.__navigation: Adw.NavigationView = build(
             Adw.NavigationView + Children(empty_page, renaming_page)
         )
-        content = build(
-            Adw.ToolbarView
-            + TypedChild("top", header)
-            + TypedChild("content", Adw.ClampScrollable + Children(self.__navigation))
-        )
-        self.set_content(content)
+        self.set_content(self.__navigation)
         self.set_default_size(800, 600)
 
     def __init__(self, application: Adw.Application):
@@ -91,7 +90,8 @@ class MainWindow(Adw.ApplicationWindow):
 
     def __on_picked_paths_changed(self, _source, paths: list[str]):
         """Update the navigation view based on the current paths."""
-        if paths:
+        visible_tag = self.__navigation.get_visible_page_tag()
+        if paths and visible_tag != RenamingPage.TAG:
             self.__navigation.push_by_tag(RenamingPage.TAG)
-        else:
+        elif (not paths) and visible_tag != EmptyPage.TAG:
             self.__navigation.pop_to_tag(EmptyPage.TAG)

@@ -6,3 +6,4 @@ class MainModel:
         self.renamed_file_paths: list[str] = []
         self.regex: str = ""
         self.replace_pattern: str = ""
+        self.apply_to_full_path: bool = False

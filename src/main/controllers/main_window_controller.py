@@ -24,35 +24,46 @@ class MainWindowController:
             MainWindow.Signals.NOTIFY_REPLACE_PATTERN,
             self.__on_replace_pattern_changed,
         )
+        self.__view.connect(
+            MainWindow.Signals.NOTIFY_APPLY_TO_FULL_PATH,
+            self.__on_apply_to_full_path_changed,
+        )
         self.__files_picker = Gtk.FileDialog(
             title="Select files to rename",
             modal=True,
         )
 
-    def __on_files_picker_requested(self, _source_object):
+    def __on_files_picker_requested(self, _source):
         """Make the user select files to rename."""
         self.__files_picker.open_multiple(
             parent=self.__view.get_root(),
             callback=self.__on_files_picked,
         )
 
-    def __on_regex_changed(self, _source_object, regex: str):
+    def __on_regex_changed(self, _source, regex: str):
         """Handle the regex text change and update the model."""
         self.__model.regex = regex
         self.recompute_renamed_paths()
-        self.__view.renamed_paths = self.__model.renamed_file_paths
 
-    def __on_replace_pattern_changed(self, _source_object, replace_pattern: str):
+    def __on_replace_pattern_changed(self, _source, replace_pattern: str):
         """Handle the replace pattern change and update the model."""
         self.__model.replace_pattern = replace_pattern
         self.recompute_renamed_paths()
-        self.__view.renamed_paths = self.__model.renamed_file_paths
+
+    def __on_apply_to_full_path_changed(self, _source, apply_to_full_path: bool):
+        """Handle the apply to full path change and update the model."""
+        self.__model.apply_to_full_path = apply_to_full_path
+        self.recompute_renamed_paths()
 
     def recompute_renamed_paths(self):
         """Recompute the renamed paths based on the current regex."""
 
         # TODO implement the logic to recompute the renamed paths here
         self.__model.renamed_file_paths = self.__model.picked_file_paths.copy()
+
+        # Reflect the changes in the view
+        self.__view.picked_paths = self.__model.picked_file_paths
+        self.__view.renamed_paths = self.__model.renamed_file_paths
 
     def __on_files_picked(self, _source_object, result: Gio.AsyncResult):
         """
