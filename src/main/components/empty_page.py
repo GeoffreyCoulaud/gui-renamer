@@ -1,3 +1,4 @@
+from enum import StrEnum
 from gi.repository import Adw, GObject, Gtk
 
 from main.widget_builder.widget_builder import (
@@ -6,13 +7,15 @@ from main.widget_builder.widget_builder import (
     Properties,
     build,
 )
-from main.signals import Signals
 
 
 class EmptyPage(Adw.NavigationPage):
     """Component for the empty page in the main window."""
 
     TAG = "empty-page"
+
+    class Signals(StrEnum):
+        PICK_FILES = "pick-files"
 
     @GObject.Signal(name=Signals.PICK_FILES)
     def signal_pick_files(self):
@@ -46,4 +49,4 @@ class EmptyPage(Adw.NavigationPage):
 
     def __on_files_picker_requested(self, _source) -> None:
         """Signal handler for the button click to pick files."""
-        self.emit(Signals.PICK_FILES)
+        self.emit(self.Signals.PICK_FILES)

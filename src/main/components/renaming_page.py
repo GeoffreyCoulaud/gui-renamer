@@ -1,4 +1,4 @@
-import logging
+from enum import StrEnum
 from gi.repository import Adw, GObject, Gtk
 
 from main.widget_builder.widget_builder import (
@@ -14,56 +14,19 @@ class RenamingPage(Adw.NavigationPage):
 
     TAG = "renaming-page"
 
+    class Signals(StrEnum):
+        NOTIFY_PICKED_PATHS = "notify::picked-paths"
+        NOTIFY_RENAMED_PATHS = "notify::renamed-paths"
+        NOTIFY_REGEX = "notify::regex"
+        NOTIFY_REPLACE_PATTERN = "notify::replace-pattern"
+        PICK_FILES = "pick-files"
+
     # --- PyGobject things
 
-    __picked_paths: list[str]
-
-    @GObject.Property(type=object)
-    def picked_paths(self) -> list[str]:
-        return self.__picked_paths
-
-    @picked_paths.setter
-    def picked_paths(self, paths: list[str]):
-        self.__picked_paths = paths
-        self.__picked_paths_listbox.remove_all()
-        for path in paths:
-            logging.debug(f"Adding picked path: {path}")
-            item = self.__build_path_widget(path)
-            self.__picked_paths_listbox.append(item)
-
-    __renamed_paths: list[str]
-
-    @GObject.Property(type=object)
-    def renamed_paths(self) -> list[str]:
-        return self.__renamed_paths
-
-    @renamed_paths.setter
-    def renamed_paths(self, paths: list[str]):
-        self.__renamed_paths = paths
-        for path in paths:
-            logging.debug(f"Adding renamed path: {path}")
-            item = self.__build_path_widget(path)
-            self.__renamed_paths_listbox.append(item)
-
-    __regex: str
-
-    @GObject.Property(type=str)
-    def regex(self) -> str:
-        return self.__regex
-
-    @regex.setter
-    def regex(self, pattern: str):
-        self.__regex = pattern
-
-    __replace_pattern: str
-
-    @GObject.Property(type=str)
-    def replace_pattern(self) -> str:
-        return self.__replace_pattern
-
-    @replace_pattern.setter
-    def replace_pattern(self, pattern: str):
-        self.__replace_pattern = pattern
+    renamed_paths: list[str] = GObject.Property(type=object)
+    picked_paths: list[str] = GObject.Property(type=object)
+    regex = GObject.Property(type=str, default="")
+    replace_pattern = GObject.Property(type=str, default="")
 
     # ---
 
@@ -82,7 +45,6 @@ class RenamingPage(Adw.NavigationPage):
                 source_property="text",
                 target=self,
                 target_property="regex",
-                flags=GObject.BindingFlags.SYNC_CREATE,
             )
         )
         self.__replace_pattern_editable: Adw.EntryRow = build(
@@ -92,7 +54,6 @@ class RenamingPage(Adw.NavigationPage):
                 source_property="text",
                 target=self,
                 target_property="replace-pattern",
-                flags=GObject.BindingFlags.SYNC_CREATE,
             )
         )
         regex_section = build(
@@ -151,6 +112,20 @@ class RenamingPage(Adw.NavigationPage):
     def __init__(self):
         super().__init__()
         self.__build()
+        self.connect(self.Signals.NOTIFY_PICKED_PATHS, self.__on_picked_paths_change)
+        self.connect(self.Signals.NOTIFY_RENAMED_PATHS, self.__on_renamed_paths_change)
+
+    def __on_picked_paths_change(self, *_args):
+        self.__picked_paths_listbox.remove_all()
+        for path in self.picked_paths:
+            item = self.__build_path_widget(path)
+            self.__picked_paths_listbox.append(item)
+
+    def __on_renamed_paths_change(self, *_args):
+        self.__renamed_paths_listbox.remove_all()
+        for path in self.renamed_paths:
+            item = self.__build_path_widget(path)
+            self.__renamed_paths_listbox.append(item)
 
     def __build_path_widget(self, path: str) -> Gtk.ListBoxRow:
         margin = 8

@@ -1,3 +1,4 @@
+from enum import StrEnum
 from gi.repository import Adw, GObject
 
 from main.components.empty_page import EmptyPage
@@ -11,7 +12,6 @@ from main.widget_builder.widget_builder import (
     TypedChild,
     build,
 )
-from main.signals import Signals
 
 
 class MainWindow(Adw.ApplicationWindow):
@@ -20,58 +20,36 @@ class MainWindow(Adw.ApplicationWindow):
     It reemits signals to the controller from the inner components.
     """
 
+    class Signals(StrEnum):
+        PICK_FILES = "pick-files"
+        NOTIFY_PICKED_PATHS = "notify::picked-paths"
+        NOTIFY_RENAMED_PATHS = "notify::renamed-paths"
+        NOTIFY_REGEX = "notify::regex"
+        NOTIFY_REPLACE_PATTERN = "notify::replace-pattern"
+
     # --- PyGobject things
 
     @GObject.Signal(name=Signals.PICK_FILES)
     def signal_pick_files(self):
         pass
 
-    __picked_paths: list[str]
-
-    @GObject.Property(type=object)
-    def picked_paths(self) -> list[str]:
-        return self.__picked_paths
-
-    @picked_paths.setter
-    def picked_paths(self, paths: list[str]):
-        self.__picked_paths = paths
-        self.__on_picked_paths_changed()
-
-    __renamed_paths: list[str]
-
-    @GObject.Property(type=object)
-    def renamed_paths(self) -> list[str]:
-        return self.__renamed_paths
-
-    @renamed_paths.setter
-    def renamed_paths(self, paths: list[str]):
-        self.__renamed_paths = paths
-
-    __regex: list[str]
-
-    @GObject.Property(type=object)
-    def regex(self) -> list[str]:
-        return self.__regex
-
-    @regex.setter
-    def regex(self, paths: list[str]):
-        self.__regex = paths
-
-    __replace_pattern: list[str]
-
-    @GObject.Property(type=object)
-    def replace_pattern(self) -> list[str]:
-        return self.__replace_pattern
-
-    @replace_pattern.setter
-    def replace_pattern(self, paths: list[str]):
-        self.__replace_pattern = paths
+    picked_paths: list[str] = GObject.Property(type=object)
+    renamed_paths: list[str] = GObject.Property(type=object)
+    regex = GObject.Property(type=str, default="")
+    replace_pattern = GObject.Property(type=str, default="")
 
     # ---
 
     def __build(self):
         header = Adw.HeaderBar + Children(Adw.WindowTitle + Properties(title="Renamer"))
-        empty_page = build(EmptyPage + Reemit(Signals.PICK_FILES, self))
+        empty_page = build(
+            EmptyPage
+            + Reemit(
+                signal=EmptyPage.Signals.PICK_FILES,
+                target=self,
+                target_signal=self.Signals.PICK_FILES,
+            )
+        )
         renaming_page = build(
             RenamingPage
             + InboundProperty(
@@ -109,10 +87,11 @@ class MainWindow(Adw.ApplicationWindow):
     def __init__(self, application: Adw.Application):
         super().__init__(application=application)
         self.__build()
+        self.connect(self.Signals.NOTIFY_PICKED_PATHS, self.__on_picked_paths_changed)
 
-    def __on_picked_paths_changed(self, *_args):
+    def __on_picked_paths_changed(self, _source, paths: list[str]):
         """Update the navigation view based on the current paths."""
-        if self.picked_paths:
+        if paths:
             self.__navigation.push_by_tag(RenamingPage.TAG)
         else:
             self.__navigation.pop_to_tag(EmptyPage.TAG)

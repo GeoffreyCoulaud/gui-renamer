@@ -17,3 +17,6 @@ dev = [
     "pygobject-stubs>=2.13.0",
     "ruff>=0.12.7",
 ]
+
+[tool.uv]
+package = true

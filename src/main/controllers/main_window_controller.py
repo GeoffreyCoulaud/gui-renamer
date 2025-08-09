@@ -4,7 +4,6 @@ from gi.repository import Gio, GLib, Gtk
 
 from main.components.main_window import MainWindow
 from main.models.main_model import MainModel
-from main.signals import Signals
 
 
 class MainWindowController:
@@ -13,10 +12,17 @@ class MainWindowController:
     def __init__(self, model: MainModel, view: MainWindow):
         self.__model = model
         self.__view = view
-        self.__view.connect(Signals.PICK_FILES, self.__on_files_picker_requested)
-        self.__view.connect("notify::regex", self.__on_regex_changed)
         self.__view.connect(
-            "notify::replace-pattern", self.__on_replace_pattern_changed
+            MainWindow.Signals.PICK_FILES,
+            self.__on_files_picker_requested,
+        )
+        self.__view.connect(
+            MainWindow.Signals.NOTIFY_REGEX,
+            self.__on_regex_changed,
+        )
+        self.__view.connect(
+            MainWindow.Signals.NOTIFY_REPLACE_PATTERN,
+            self.__on_replace_pattern_changed,
         )
         self.__files_picker = Gtk.FileDialog(
             title="Select files to rename",

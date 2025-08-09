@@ -10,7 +10,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib
 
 from main.components.main_window import MainWindow
-from main.constants import Constants
+import main.constants as constants
 from main.controllers.main_window_controller import MainWindowController
 from main.models.main_model import MainModel
 
@@ -44,7 +44,7 @@ class App(BaseApplication):
 
     def __init__(self):
         super().__init__(
-            application_id=Constants.APP_ID,
+            application_id=constants.APP_ID,
             flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
         )
         self._create_action("quit", lambda *_: self.quit(), shortcuts=["<primary>q"])
