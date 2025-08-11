@@ -61,10 +61,6 @@ class MainWindowController:
         # TODO implement the logic to recompute the renamed paths here
         self.__model.renamed_file_paths = self.__model.picked_file_paths.copy()
 
-        # Reflect the changes in the view
-        self.__view.picked_paths = self.__model.picked_file_paths
-        self.__view.renamed_paths = self.__model.renamed_file_paths
-
     def __on_files_picked(self, _source_object, result: Gio.AsyncResult):
         """
         Handle the files picked by the user.

@@ -3,6 +3,7 @@ from pathlib import Path
 
 from gi.repository import Adw, GObject, Gtk  # type: ignore
 
+from main.models.main_model import MainModel
 from main.widget_builder.widget_builder import (
     Children,
     OutboundProperty,
@@ -18,22 +19,20 @@ class RenamingPage(Adw.NavigationPage):
     TAG = "renaming-page"
 
     class Signals(StrEnum):
-        NOTIFY_PICKED_PATHS = "notify::picked-paths"
-        NOTIFY_RENAMED_PATHS = "notify::renamed-paths"
         NOTIFY_REGEX = "notify::regex"
         NOTIFY_REPLACE_PATTERN = "notify::replace-pattern"
         NOTIFY_APPLY_TO_FULL_PATH = "notify::apply-to-full-path"
         PICK_FILES = "pick-files"
 
-    # --- PyGobject things
-
-    renamed_paths: list[str] = GObject.Property(type=object)
-    picked_paths: list[str] = GObject.Property(type=object)
     regex = GObject.Property(type=str, default="")
     replace_pattern = GObject.Property(type=str, default="")
     apply_to_full_path: bool = GObject.Property(type=bool, default=False)
 
-    # ---
+    __model: MainModel
+    __regex_editable: Adw.EntryRow
+    __replace_pattern_editable: Adw.EntryRow
+    __picked_paths_listbox: Gtk.ListBox
+    __renamed_paths_listbox: Gtk.ListBox
 
     def __build(self) -> None:
         margin = 12
@@ -72,7 +71,7 @@ class RenamingPage(Adw.NavigationPage):
         )
 
         # Regex section
-        self.__regex_editable: Adw.EntryRow = build(
+        self.__regex_editable = build(
             Adw.EntryRow
             + Properties(title="Regex Pattern", css_classes=["monospace"])
             + OutboundProperty(
@@ -81,7 +80,7 @@ class RenamingPage(Adw.NavigationPage):
                 target_property="regex",
             )
         )
-        self.__replace_pattern_editable: Adw.EntryRow = build(
+        self.__replace_pattern_editable = build(
             Adw.EntryRow
             + Properties(title="Replace Pattern", css_classes=["monospace"])
             + OutboundProperty(
@@ -106,7 +105,7 @@ class RenamingPage(Adw.NavigationPage):
         )
 
         # Paths new path section
-        self.__picked_paths_listbox: Gtk.ListBox = build(
+        self.__picked_paths_listbox = build(
             Gtk.ListBox
             + BOXED_LIST_PROPERTIES
             + Properties(
@@ -116,7 +115,7 @@ class RenamingPage(Adw.NavigationPage):
                 margin_end=margin / 2,
             )
         )
-        self.__renamed_paths_listbox: Gtk.ListBox = build(
+        self.__renamed_paths_listbox = build(
             Gtk.ListBox
             + BOXED_LIST_PROPERTIES
             + Properties(
@@ -152,21 +151,28 @@ class RenamingPage(Adw.NavigationPage):
         self.set_title("Rename")
         self.set_child(content)
 
-    def __init__(self):
+    def __init__(self, model: MainModel):
         super().__init__()
+        self.__model = model
         self.__build()
-        self.connect(self.Signals.NOTIFY_PICKED_PATHS, self.__on_picked_paths_change)
-        self.connect(self.Signals.NOTIFY_RENAMED_PATHS, self.__on_renamed_paths_change)
+        self.connect(
+            self.__model.Signals.NOTIFY_PICKED_FILE_PATHS,
+            self.__on_picked_paths_change,
+        )
+        self.connect(
+            self.__model.Signals.NOTIFY_RENAMED_FILE_PATHS,
+            self.__on_renamed_paths_change,
+        )
 
     def __on_picked_paths_change(self, *_args):
         self.__picked_paths_listbox.remove_all()
-        for path in self.picked_paths:
+        for path in self.__model.picked_file_paths:
             item = self.__build_path_widget(path)
             self.__picked_paths_listbox.append(item)
 
     def __on_renamed_paths_change(self, *_args):
         self.__renamed_paths_listbox.remove_all()
-        for path in self.renamed_paths:
+        for path in self.__model.renamed_file_paths:
             item = self.__build_path_widget(path)
             self.__renamed_paths_listbox.append(item)
 
