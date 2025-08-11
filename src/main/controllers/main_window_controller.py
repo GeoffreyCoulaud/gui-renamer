@@ -9,6 +9,10 @@ from main.models.main_model import MainModel
 class MainWindowController:
     """MVC controller for the main window of the application."""
 
+    __model: MainModel
+    __view: MainWindow
+    __files_picker: Gtk.FileDialog
+
     def __init__(self, model: MainModel, view: MainWindow):
         self.__model = model
         self.__view = view

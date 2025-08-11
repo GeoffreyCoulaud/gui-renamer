@@ -22,8 +22,6 @@ class MainWindow(Adw.ApplicationWindow):
 
     class Signals(StrEnum):
         PICK_FILES = "pick-files"
-        NOTIFY_PICKED_PATHS = "notify::picked-paths"
-        NOTIFY_RENAMED_PATHS = "notify::renamed-paths"
         NOTIFY_REGEX = "notify::regex"
         NOTIFY_REPLACE_PATTERN = "notify::replace-pattern"
         NOTIFY_APPLY_TO_FULL_PATH = "notify::apply-to-full-path"
@@ -77,7 +75,10 @@ class MainWindow(Adw.ApplicationWindow):
         super().__init__(application=application)
         self.__model = model
         self.__build()
-        self.connect(self.Signals.NOTIFY_PICKED_PATHS, self.__on_picked_paths_changed)
+        self.__model.connect(
+            self.__model.Signals.NOTIFY_PICKED_FILE_PATHS,
+            self.__on_picked_paths_changed,
+        )
 
     def __on_picked_paths_changed(self, _source, paths: list[str]):
         """Update the navigation view based on the current paths."""

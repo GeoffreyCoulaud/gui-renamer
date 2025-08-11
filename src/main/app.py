@@ -23,16 +23,14 @@ class BaseApplication(Adw.Application):
         self,
         name: str,
         callback: Callable,
-        param_type: None | str | GLib.VariantType = None,
+        param_type: None | GLib.VariantType = None,
         shortcuts: None | list[str] = None,
     ) -> None:
         """Create an action with a name, handler and optional shortcuts"""
-        if isinstance(param_type, str):
-            param_type = GLib.VariantType.new(param_type)
         action = Gio.SimpleAction.new(name, param_type)
         action.connect("activate", callback)
         self.add_action(action)
-        if shortcuts is not None:
+        if shortcuts:
             self.set_accels_for_action(f"app.{name}", shortcuts)
 
     @abstractmethod
@@ -43,17 +41,21 @@ class BaseApplication(Adw.Application):
 class App(BaseApplication):
     """Main application class that initializes the application and its components."""
 
-    def __init__(self):
+    __main_model: MainModel
+    __main_model_controller: MainWindowController
+    __main_window: MainWindow
+
+    def __init__(self) -> None:
         super().__init__(
             application_id=constants.APP_ID,
             flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
         )
-        self._create_action("quit", lambda *_: self.quit(), shortcuts=["<primary>q"])
-
-        # Initialize the main model, view, and controller
+        self._create_action(
+            name="quit",
+            callback=lambda *_: self.quit(),
+            shortcuts=["<primary>q"],
+        )
         self.__main_model = MainModel()
-        self.__main_window: MainWindow
-        self.__main_window_controller: MainWindowController
 
     def do_activate(self):
         self.__main_window = MainWindow(application=self)
