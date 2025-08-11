@@ -1,6 +1,6 @@
 from typing import cast
 
-from gi.repository import Gio, GLib, Gtk
+from gi.repository import Gio, GLib, Gtk  # type: ignore
 
 from main.components.main_window import MainWindow
 from main.models.main_model import MainModel

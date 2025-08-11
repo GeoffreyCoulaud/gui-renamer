@@ -1,5 +1,6 @@
 from enum import StrEnum
-from gi.repository import Adw, GObject, Gtk
+
+from gi.repository import Adw, GObject, Gtk  # type: ignore
 
 from main.widget_builder.widget_builder import (
     Children,

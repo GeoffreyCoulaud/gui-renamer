@@ -1,16 +1,17 @@
 # ruff: noqa: E402
 
-from abc import abstractmethod
 import sys
+from abc import abstractmethod
 from typing import Callable
-import gi
+
+import gi  # type: ignore
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gio, GLib
+from gi.repository import Adw, Gio, GLib  # type: ignore
 
-from main.components.main_window import MainWindow
 import main.constants as constants
+from main.components.main_window import MainWindow
 from main.controllers.main_window_controller import MainWindowController
 from main.models.main_model import MainModel
 

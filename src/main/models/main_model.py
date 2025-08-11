@@ -1,7 +1,7 @@
 class MainModel:
     """MVC model for the main application logic."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.picked_file_paths: list[str] = []
         self.renamed_file_paths: list[str] = []
         self.regex: str = ""

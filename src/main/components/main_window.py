@@ -1,5 +1,6 @@
 from enum import StrEnum
-from gi.repository import Adw, GObject
+
+from gi.repository import Adw, GObject  # type: ignore
 
 from main.components.empty_page import EmptyPage
 from main.components.renaming_page import RenamingPage
@@ -40,7 +41,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     # ---
 
-    def __build(self):
+    def __build(self) -> None:
         empty_page = build(
             EmptyPage
             + Reemit(

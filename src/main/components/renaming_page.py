@@ -1,11 +1,12 @@
 from enum import StrEnum
 from pathlib import Path
-from gi.repository import Adw, GObject, Gtk
+
+from gi.repository import Adw, GObject, Gtk  # type: ignore
 
 from main.widget_builder.widget_builder import (
     Children,
-    Properties,
     OutboundProperty,
+    Properties,
     TypedChild,
     build,
 )
@@ -34,7 +35,7 @@ class RenamingPage(Adw.NavigationPage):
 
     # ---
 
-    def __build(self):
+    def __build(self) -> None:
         margin = 12
         BOXED_LIST_PROPERTIES = Properties(
             css_classes=["boxed-list"],
