@@ -1,6 +1,6 @@
 from typing import cast
 
-from gi.repository import Gio, GLib, Gtk  # type: ignore
+from gi.repository import Gio, GLib, GObject, Gtk  # type: ignore
 
 from main.components.main_window import MainWindow
 from main.models.main_model import MainModel
@@ -20,6 +20,12 @@ class MainWindowController:
         self.__view.connect(
             MainWindow.Signals.PICK_FILES,
             self.__on_files_picker_requested,
+        )
+        self.__model.bind_property(
+            source_property="rename-target",
+            target=self.__view,
+            target_property="rename-target",
+            flags=GObject.BindingFlags.SYNC_CREATE,
         )
 
     def __on_files_picker_requested(self, _source):

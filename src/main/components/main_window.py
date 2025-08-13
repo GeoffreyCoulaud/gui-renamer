@@ -46,16 +46,20 @@ class MainWindow(Adw.ApplicationWindow):
             self.__navigation.pop_to_tag(EmptyPage.TAG)
 
     renamed_file_paths: list[str] = GObject.Property(type=object)
+    rename_target: str = GObject.Property(type=str)
 
     # --- Outbound properties
 
     regex: str = GObject.Property(type=str, default="")
     replace_pattern: str = GObject.Property(type=str, default="")
-    apply_to_full_path: bool = GObject.Property(type=bool, default=False)
 
     # ---
 
     __navigation: Adw.NavigationView
+
+    def __init__(self, application: Adw.Application):
+        super().__init__(application=application)
+        self.__build()
 
     def __build(self) -> None:
         empty_page = build(
@@ -78,11 +82,6 @@ class MainWindow(Adw.ApplicationWindow):
                 target=self,
                 target_property="replace-pattern",
             )
-            + OutboundProperty(
-                source_property="apply-to-full-path",
-                target=self,
-                target_property="apply-to-full-path",
-            )
             + InboundProperty(
                 source=self,
                 source_property="picked-file-paths",
@@ -93,13 +92,14 @@ class MainWindow(Adw.ApplicationWindow):
                 source_property="renamed-file-paths",
                 target_property="renamed-file-paths",
             )
+            + InboundProperty(
+                source=self,
+                source_property="rename-target",
+                target_property="rename_target",
+            )
         )
         self.__navigation = build(
             Adw.NavigationView + Children(empty_page, renaming_page)
         )
         self.set_content(self.__navigation)
         self.set_default_size(800, 600)
-
-    def __init__(self, application: Adw.Application):
-        super().__init__(application=application)
-        self.__build()

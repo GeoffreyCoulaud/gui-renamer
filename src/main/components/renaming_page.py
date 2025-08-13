@@ -1,8 +1,10 @@
 from enum import StrEnum
 from pathlib import Path
 
-from gi.repository import Adw, GObject, Gtk  # type: ignore
+from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
+from main.enums.action_names import ActionNames
+from main.enums.rename_target_action_options import RenameTarget
 from main.widget_builder.widget_builder import (
     Children,
     OutboundProperty,
@@ -53,11 +55,12 @@ class RenamingPage(Adw.NavigationPage):
             item = self.__build_path_widget(path)
             self.__renamed_paths_listbox.append(item)
 
+    rename_target: RenameTarget = GObject.Property(type=str)
+
     # --- Outbound properties
 
     regex: str = GObject.Property(type=str, default="")
     replace_pattern: str = GObject.Property(type=str, default="")
-    apply_to_full_path: bool = GObject.Property(type=bool, default=False)
 
     # ---
 
@@ -66,35 +69,41 @@ class RenamingPage(Adw.NavigationPage):
     __picked_paths_listbox: Gtk.ListBox
     __renamed_paths_listbox: Gtk.ListBox
 
+    def __get_menu_model(self) -> Gio.Menu:
+        # Create a radio menu with 3 items for rename target selection.
+        rename_target_action = f"app.{ActionNames.RENAME_TARGET}"
+        full = Gio.MenuItem.new(label="Full path")
+        full.set_action_and_target_value(
+            action=rename_target_action,
+            target_value=GLib.Variant.new_string(RenameTarget.FULL),
+        )
+        name = Gio.MenuItem.new(label="File name")
+        name.set_action_and_target_value(
+            action=rename_target_action,
+            target_value=GLib.Variant.new_string(RenameTarget.NAME),
+        )
+        stem = Gio.MenuItem.new(label="File name, without extention")
+        stem.set_action_and_target_value(
+            action=rename_target_action,
+            target_value=GLib.Variant.new_string(RenameTarget.STEM),
+        )
+
+        # Create a Gio.Menu and append the items.
+        menu = Gio.Menu()
+        menu.append_item(stem)
+        menu.append_item(name)
+        menu.append_item(full)
+
+        return menu
+
     def __build(self) -> None:
         margin = 12
         BOXED_LIST_PROPERTIES = Properties(
             css_classes=["boxed-list"],
             selection_mode=Gtk.SelectionMode.NONE,
         )
-        popover = build(
-            Gtk.Popover
-            + Children(
-                Gtk.Box
-                + Properties(orientation=Gtk.Orientation.VERTICAL)
-                + Children(
-                    # TODO add the settings here
-                    Gtk.CheckButton
-                    + Properties(
-                        label="Apply to full path",
-                        active=False,
-                    )
-                    + OutboundProperty(
-                        source_property="active",
-                        target=self,
-                        target_property="apply-to-full-path",
-                    )
-                )
-            )
-        )
         menu_button = Gtk.MenuButton + Properties(
-            icon_name="open-menu-symbolic",
-            popover=popover,
+            icon_name="open-menu-symbolic", menu_model=self.__get_menu_model()
         )
         header = (
             Adw.HeaderBar
@@ -188,10 +197,16 @@ class RenamingPage(Adw.NavigationPage):
         self.__build()
 
     def __build_path_widget(self, path: str) -> Gtk.ListBoxRow:
+        text: str
+        match self.rename_target:
+            case RenameTarget.FULL:
+                text = path
+            case RenameTarget.NAME:
+                text = Path(path).name
+            case RenameTarget.STEM:
+                text = Path(path).stem
+
         margin = 8
-
-        text = path if self.apply_to_full_path else Path(path).name
-
         return build(
             Gtk.ListBoxRow
             + Children(

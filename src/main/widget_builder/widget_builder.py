@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 import logging
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Any, Callable, Generic, Self, TypeVar
 
-from gi.repository import Adw, Gtk, GObject
-from gi.repository.Gtk import Widget
+from gi.repository import Adw, GObject, Gtk  # type: ignore
+from gi.repository.Gtk import Widget  # type: ignore
 
 _BuiltWidget = TypeVar("_BuiltWidget", bound=Widget)
 

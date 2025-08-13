@@ -1,7 +1,9 @@
 import re
 from pathlib import Path
 
-from gi.repository import GObject  # type: ignore
+from gi.repository import GObject
+
+from main.enums.rename_target_action_options import RenameTarget  # type: ignore
 
 
 class MainModel(GObject.Object):
@@ -50,32 +52,51 @@ class MainModel(GObject.Object):
         self.__replace_pattern = value
         self.recompute_renamed_paths()
 
-    __apply_to_full_path: bool = False
+    __rename_target: RenameTarget = RenameTarget.NAME
 
-    @GObject.Property(type=bool, default=False)
-    def apply_to_full_path(self) -> bool:
-        return self.__apply_to_full_path
+    @GObject.Property(type=str, default=RenameTarget.NAME)
+    def rename_target(self) -> str:
+        return self.__rename_target
 
-    @apply_to_full_path.setter
-    def apply_to_full_path_setter(self, value: bool) -> None:
-        self.__apply_to_full_path = value
+    @rename_target.setter
+    def rename_target_setter(self, value: RenameTarget) -> None:
+        self.__rename_target = value
         self.recompute_renamed_paths()
 
     # ---
 
+    def _rename_using_full_path(self, path: str) -> str:
+        """Rename the full path based on the regex and replace pattern."""
+        return re.sub(self.regex, self.replace_pattern, path)
+
+    def _rename_using_name(self, path: str) -> str:
+        """Rename the file name based on the regex and replace pattern."""
+        p = Path(path)
+        name = re.sub(self.regex, self.replace_pattern, p.name)
+        return str(p.parent / name)
+
+    def _rename_using_stem(self, path: str) -> str:
+        """Rename the file stem based on the regex and replace pattern."""
+        p = Path(path)
+        name = p.with_stem(f"{re.sub(self.regex, self.replace_pattern, p.stem)}")
+        return str(p.parent / name)
+
     def recompute_renamed_paths(self) -> None:
-        # Apply rename to full path
-        if self.apply_to_full_path:
-            self.renamed_file_paths = [
-                re.sub(self.regex, self.replace_pattern, path)
-                for path in self.picked_file_paths
-            ]
+        """Recompute the renamed file paths based on the current regex and replace pattern."""
 
-        # Apply rename to file name only
-        else:
-            self.renamed_file_paths = [
-                str(p.parent / re.sub(self.regex, self.replace_pattern, p.name))
-                for p in [Path(p) for p in self.picked_file_paths]
-            ]
+        transform: callable[[str], str]
+        match self.rename_target:
+            case RenameTarget.FULL:
+                transform = self._rename_using_full_path
+            case RenameTarget.NAME:
+                transform = self._rename_using_name
+            case RenameTarget.STEM:
+                transform = self._rename_using_stem
+            case _:
+                raise ValueError(f"Unknown rename target: {self.rename_target}")
 
+        self.renamed_file_paths = [transform(path) for path in self.picked_file_paths]
+
+        # HACK - Notify that picked file paths have changed, even if they haven't.
+        # This is a workaround for proper UI updates (will be fixed in the future)
         self.notify("picked-file-paths")

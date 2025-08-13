@@ -1,10 +1,10 @@
 # ruff: noqa: E402
 
 import sys
-from typing import Callable
 
 import gi  # type: ignore
 
+from main.enums.action_names import ActionNames
 from main.widget_builder.widget_builder import (  # type: ignore
     Arguments,
     InboundProperty,
@@ -21,6 +21,8 @@ from main.components.main_window import MainWindow
 from main.controllers.main_window_controller import MainWindowController
 from main.models.main_model import MainModel
 
+VARIANT_TYPE_STRING = GLib.VariantType.new("s")
+
 
 class App(Adw.Application):
     """Main application class that initializes the application and its components."""
@@ -29,17 +31,36 @@ class App(Adw.Application):
     __controller: MainWindowController
     __window: MainWindow
 
+    __quit_action: Gio.Action
+    __pick_files_action: Gio.Action
+    __rename_target_action: Gio.Action
+
     def __init__(self) -> None:
         super().__init__(
             application_id=constants.APP_ID,
             flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
         )
-        self._create_action(
-            name="quit",
-            callback=lambda *_: self.quit(),
-            shortcuts=["<primary>q"],
-        )
         self.__model = MainModel()
+        self.__register_actions()
+
+    def __register_actions(self) -> None:
+        # Quit action
+        self.__quit_action = Gio.SimpleAction.new(name=ActionNames.QUIT)
+        self.__quit_action.connect("activate", lambda *_: self.quit())
+        self.add_action(self.__quit_action)
+        self.set_accels_for_action("app.quit", ["<primary>q"])
+
+        # Rename target action
+        self.__rename_target_action = Gio.PropertyAction.new(
+            name=ActionNames.RENAME_TARGET,
+            object=self.__model,
+            property_name="rename-target",
+        )
+        self.add_action(self.__rename_target_action)
+
+        # Pick files action
+        self.__pick_files_action = Gio.SimpleAction.new(name=ActionNames.PICK_FILES)
+        self.add_action(self.__pick_files_action)
 
     def do_activate(self):
         self.__window = build(
@@ -55,11 +76,6 @@ class App(Adw.Application):
                 target=self.__model,
                 target_property="replace-pattern",
             )
-            + OutboundProperty(
-                source_property="apply-to-full-path",
-                target=self.__model,
-                target_property="apply-to-full-path",
-            )
             + InboundProperty(
                 source=self.__model,
                 source_property="picked-file-paths",
@@ -70,26 +86,17 @@ class App(Adw.Application):
                 source_property="renamed-file-paths",
                 target_property="renamed-file-paths",
             )
+            + InboundProperty(
+                source=self.__model,
+                source_property="rename-target",
+                target_property="rename_target",
+            )
         )
         self.__controller = MainWindowController(
             model=self.__model,
             view=self.__window,
         )
         self.__controller.present()
-
-    def _create_action(
-        self,
-        name: str,
-        callback: Callable,
-        param_type: None | GLib.VariantType = None,
-        shortcuts: None | list[str] = None,
-    ) -> None:
-        """Create an action with a name, handler and optional shortcuts"""
-        action = Gio.SimpleAction.new(name, param_type)
-        action.connect("activate", callback)
-        self.add_action(action)
-        if shortcuts:
-            self.set_accels_for_action(f"app.{name}", shortcuts)
 
 
 def main():
