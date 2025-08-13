@@ -7,7 +7,7 @@ from main.enums.action_names import ActionNames
 from main.enums.rename_target_action_options import RenameTarget
 from main.widget_builder.widget_builder import (
     Children,
-    OutboundProperty,
+    Handlers,
     Properties,
     TypedChild,
     build,
@@ -20,9 +20,6 @@ class RenamingPage(Adw.NavigationPage):
     TAG = "renaming-page"
 
     class Signals(StrEnum):
-        NOTIFY_REGEX = "notify::regex"
-        NOTIFY_REPLACE_PATTERN = "notify::replace-pattern"
-        NOTIFY_APPLY_TO_FULL_PATH = "notify::apply-to-full-path"
         PICK_FILES = "pick-files"
 
     # --- Inbound properties
@@ -57,15 +54,8 @@ class RenamingPage(Adw.NavigationPage):
 
     rename_target: RenameTarget = GObject.Property(type=str)
 
-    # --- Outbound properties
-
-    regex: str = GObject.Property(type=str, default="")
-    replace_pattern: str = GObject.Property(type=str, default="")
-
     # ---
 
-    __regex_editable: Adw.EntryRow
-    __replace_pattern_editable: Adw.EntryRow
     __picked_paths_listbox: Gtk.ListBox
     __renamed_paths_listbox: Gtk.ListBox
 
@@ -112,23 +102,15 @@ class RenamingPage(Adw.NavigationPage):
         )
 
         # Regex section
-        self.__regex_editable = build(
+        regex_editable = build(
             Adw.EntryRow
             + Properties(title="Regex Pattern", css_classes=["monospace"])
-            + OutboundProperty(
-                source_property="text",
-                target=self,
-                target_property="regex",
-            )
+            + Handlers(changed=self.__on_regex_changed)
         )
-        self.__replace_pattern_editable = build(
+        replace_pattern_editable = build(
             Adw.EntryRow
             + Properties(title="Replace Pattern", css_classes=["monospace"])
-            + OutboundProperty(
-                source_property="text",
-                target=self,
-                target_property="replace-pattern",
-            )
+            + Handlers(changed=self.__on_replace_pattern_changed)
         )
         regex_section = build(
             Gtk.ListBox
@@ -140,8 +122,8 @@ class RenamingPage(Adw.NavigationPage):
                 margin_end=margin,
             )
             + Children(
-                self.__regex_editable,
-                self.__replace_pattern_editable,
+                regex_editable,
+                replace_pattern_editable,
             )
         )
 
@@ -196,6 +178,18 @@ class RenamingPage(Adw.NavigationPage):
         super().__init__()
         self.__build()
 
+    def __on_regex_changed(self, editable: Gtk.Editable):
+        self.activate_action(
+            name=f"app.{ActionNames.REGEX}",
+            args=GLib.Variant.new_string(editable.get_text()),
+        )
+
+    def __on_replace_pattern_changed(self, editable: Gtk.Editable):
+        self.activate_action(
+            name=f"app.{ActionNames.REPLACE_PATTERN}",
+            args=GLib.Variant.new_string(editable.get_text()),
+        )
+
     def __build_path_widget(self, path: str) -> Gtk.ListBoxRow:
         text: str
         match self.rename_target:
@@ -205,6 +199,8 @@ class RenamingPage(Adw.NavigationPage):
                 text = Path(path).name
             case RenameTarget.STEM:
                 text = Path(path).stem
+            case _:
+                TypeError(f"Unknown rename target: {self.rename_target}")
 
         margin = 8
         return build(

@@ -1,5 +1,3 @@
-from enum import StrEnum
-
 from gi.repository import Adw, GObject  # type: ignore
 
 from main.components.empty_page import EmptyPage
@@ -7,8 +5,6 @@ from main.components.renaming_page import RenamingPage
 from main.widget_builder.widget_builder import (
     Children,
     InboundProperty,
-    OutboundProperty,
-    Reemit,
     build,
 )
 
@@ -16,15 +12,7 @@ from main.widget_builder.widget_builder import (
 class MainWindow(Adw.ApplicationWindow):
     """
     MVC view for the main window of the application.
-    It reemits signals to the controller from the inner components.
     """
-
-    class Signals(StrEnum):
-        PICK_FILES = "pick-files"
-
-    @GObject.Signal(name=Signals.PICK_FILES)
-    def signal_pick_files(self):
-        pass
 
     # --- Inbound properties
 
@@ -48,11 +36,6 @@ class MainWindow(Adw.ApplicationWindow):
     renamed_file_paths: list[str] = GObject.Property(type=object)
     rename_target: str = GObject.Property(type=str)
 
-    # --- Outbound properties
-
-    regex: str = GObject.Property(type=str, default="")
-    replace_pattern: str = GObject.Property(type=str, default="")
-
     # ---
 
     __navigation: Adw.NavigationView
@@ -62,40 +45,26 @@ class MainWindow(Adw.ApplicationWindow):
         self.__build()
 
     def __build(self) -> None:
-        empty_page = build(
-            EmptyPage
-            + Reemit(
-                signal=EmptyPage.Signals.PICK_FILES,
-                target=self,
-                target_signal=self.Signals.PICK_FILES,
-            )
-        )
+        empty_page = build(EmptyPage)
         renaming_page = build(
             RenamingPage
-            + OutboundProperty(
-                source_property="regex",
-                target=self,
-                target_property="regex",
-            )
-            + OutboundProperty(
-                source_property="replace-pattern",
-                target=self,
-                target_property="replace-pattern",
-            )
             + InboundProperty(
                 source=self,
                 source_property="picked-file-paths",
                 target_property="picked-file-paths",
+                flags=GObject.BindingFlags.SYNC_CREATE,
             )
             + InboundProperty(
                 source=self,
                 source_property="renamed-file-paths",
                 target_property="renamed-file-paths",
+                flags=GObject.BindingFlags.SYNC_CREATE,
             )
             + InboundProperty(
                 source=self,
                 source_property="rename-target",
                 target_property="rename_target",
+                flags=GObject.BindingFlags.SYNC_CREATE,
             )
         )
         self.__navigation = build(

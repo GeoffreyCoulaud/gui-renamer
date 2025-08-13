@@ -32,7 +32,7 @@ class MainModel(GObject.Object):
 
     __regex: str = ""
 
-    @GObject.Property(type=str)
+    @GObject.Property(type=str, default="")
     def regex(self) -> str:
         return self.__regex
 
@@ -43,7 +43,7 @@ class MainModel(GObject.Object):
 
     __replace_pattern: str = ""
 
-    @GObject.Property(type=str)
+    @GObject.Property(type=str, default="")
     def replace_pattern(self) -> str:
         return self.__replace_pattern
 

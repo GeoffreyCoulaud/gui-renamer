@@ -1,6 +1,7 @@
 # ruff: noqa: E402
 
 import sys
+from typing import cast
 
 import gi  # type: ignore
 
@@ -8,17 +9,15 @@ from main.enums.action_names import ActionNames
 from main.widget_builder.widget_builder import (  # type: ignore
     Arguments,
     InboundProperty,
-    OutboundProperty,
     build,
 )
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gio, GLib  # type: ignore
+from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
 import main.constants as constants
 from main.components.main_window import MainWindow
-from main.controllers.main_window_controller import MainWindowController
 from main.models.main_model import MainModel
 
 VARIANT_TYPE_STRING = GLib.VariantType.new("s")
@@ -28,17 +27,24 @@ class App(Adw.Application):
     """Main application class that initializes the application and its components."""
 
     __model: MainModel
-    __controller: MainWindowController
     __window: MainWindow
+    __files_picker: Gtk.FileDialog
 
     __quit_action: Gio.Action
     __pick_files_action: Gio.Action
+
     __rename_target_action: Gio.Action
+    __regex_action: Gio.Action
+    __replace_pattern_action: Gio.Action
 
     def __init__(self) -> None:
         super().__init__(
             application_id=constants.APP_ID,
             flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
+        )
+        self.__files_picker = Gtk.FileDialog(
+            title="Select files to rename",
+            modal=True,
         )
         self.__model = MainModel()
         self.__register_actions()
@@ -58,45 +64,89 @@ class App(Adw.Application):
         )
         self.add_action(self.__rename_target_action)
 
+        # Regex action
+        self.__regex_action = Gio.PropertyAction.new(
+            name=ActionNames.REGEX,
+            object=self.__model,
+            property_name="regex",
+        )
+        self.add_action(self.__regex_action)
+
+        # Replace pattern action
+        self.__replace_pattern_action = Gio.PropertyAction.new(
+            name=ActionNames.REPLACE_PATTERN,
+            object=self.__model,
+            property_name="replace-pattern",
+        )
+        self.add_action(self.__replace_pattern_action)
+
         # Pick files action
         self.__pick_files_action = Gio.SimpleAction.new(name=ActionNames.PICK_FILES)
         self.add_action(self.__pick_files_action)
+        self.__pick_files_action.connect(
+            "activate",
+            self.__on_files_picker_requested,
+        )
 
     def do_activate(self):
         self.__window = build(
             MainWindow
             + Arguments(application=self)
-            + OutboundProperty(
-                source_property="regex",
-                target=self.__model,
-                target_property="regex",
-            )
-            + OutboundProperty(
-                source_property="replace-pattern",
-                target=self.__model,
-                target_property="replace-pattern",
-            )
             + InboundProperty(
                 source=self.__model,
                 source_property="picked-file-paths",
                 target_property="picked-file-paths",
+                flags=GObject.BindingFlags.SYNC_CREATE,
             )
             + InboundProperty(
                 source=self.__model,
                 source_property="renamed-file-paths",
                 target_property="renamed-file-paths",
+                flags=GObject.BindingFlags.SYNC_CREATE,
             )
             + InboundProperty(
                 source=self.__model,
                 source_property="rename-target",
-                target_property="rename_target",
+                target_property="rename-target",
+                flags=GObject.BindingFlags.SYNC_CREATE,
             )
         )
-        self.__controller = MainWindowController(
-            model=self.__model,
-            view=self.__window,
+        self.__window.present()
+
+    def __on_files_picker_requested(self, *_args):
+        """Make the user select files to rename."""
+        self.__files_picker.open_multiple(
+            parent=self.__window.get_root(),
+            callback=self.__on_files_picked,
         )
-        self.__controller.present()
+
+    def __on_files_picked(self, _source_object, result: Gio.AsyncResult):
+        """
+        Handle the files picked by the user.
+
+        This is a `Gio.AsyncReadyCallback`<br/>
+        https://lazka.github.io/pgi-docs/Gio-2.0/callbacks.html#Gio.AsyncReadyCallback
+        """
+
+        try:
+            paths_list_model = self.__files_picker.open_multiple_finish(result=result)
+        except GLib.Error:
+            return
+
+        paths = [
+            file_path
+            for i in range(paths_list_model.get_n_items())
+            if (
+                (file_path := cast(Gio.File, paths_list_model.get_item(i)).get_path())
+                is not None
+            )
+        ]
+
+        print("DEBUG -- Picked files:")
+        for path in paths:
+            print(f"DEBUG -- {path}")
+
+        self.__model.picked_file_paths = paths
 
 
 def main():

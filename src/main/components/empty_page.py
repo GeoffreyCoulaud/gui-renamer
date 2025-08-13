@@ -1,10 +1,8 @@
-from enum import StrEnum
+from gi.repository import Adw, Gtk  # type: ignore
 
-from gi.repository import Adw, GObject, Gtk  # type: ignore
-
+from main.enums.action_names import ActionNames
 from main.widget_builder.widget_builder import (
     Children,
-    Handlers,
     Properties,
     TypedChild,
     build,
@@ -15,14 +13,6 @@ class EmptyPage(Adw.NavigationPage):
     """Component for the empty page in the main window."""
 
     TAG = "empty-page"
-
-    class Signals(StrEnum):
-        PICK_FILES = "pick-files"
-
-    @GObject.Signal(name=Signals.PICK_FILES)
-    def signal_pick_files(self):
-        """Signal emitted when the user requests to pick files."""
-        pass
 
     def __build(self) -> None:
         header = Adw.HeaderBar + Children(Adw.WindowTitle + Properties(title="Renamer"))
@@ -43,8 +33,10 @@ class EmptyPage(Adw.NavigationPage):
                 )
                 + Children(
                     Gtk.Button
-                    + Properties(css_classes=["suggested-action", "pill"])
-                    + Handlers(clicked=self.__on_files_picker_requested)
+                    + Properties(
+                        css_classes=["suggested-action", "pill"],
+                        action_name=f"app.{ActionNames.PICK_FILES}",
+                    )
                     + Children(Gtk.Label + Properties(label="Select files to rename"))
                 )
             )
@@ -64,7 +56,3 @@ class EmptyPage(Adw.NavigationPage):
     def __init__(self):
         super().__init__()
         self.__build()
-
-    def __on_files_picker_requested(self, _source) -> None:
-        """Signal handler for the button click to pick files."""
-        self.emit(self.Signals.PICK_FILES)
