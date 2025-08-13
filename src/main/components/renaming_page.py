@@ -3,7 +3,6 @@ from pathlib import Path
 
 from gi.repository import Adw, GObject, Gtk  # type: ignore
 
-from main.models.main_model import MainModel
 from main.widget_builder.widget_builder import (
     Children,
     OutboundProperty,
@@ -24,11 +23,44 @@ class RenamingPage(Adw.NavigationPage):
         NOTIFY_APPLY_TO_FULL_PATH = "notify::apply-to-full-path"
         PICK_FILES = "pick-files"
 
-    regex = GObject.Property(type=str, default="")
-    replace_pattern = GObject.Property(type=str, default="")
+    # --- Inbound properties
+
+    __picked_file_paths: list[str]
+
+    @GObject.Property(type=object)
+    def picked_file_paths(self):
+        return self.__picked_file_paths
+
+    @picked_file_paths.setter
+    def picked_file_paths_setter(self, value: list[str]):
+        self.__picked_file_paths = value
+        self.__picked_paths_listbox.remove_all()
+        for path in self.__picked_file_paths:
+            item = self.__build_path_widget(path)
+            self.__picked_paths_listbox.append(item)
+
+    __renamed_file_paths: list[str]
+
+    @GObject.Property(type=object)
+    def renamed_file_paths(self):
+        return self.__renamed_file_paths
+
+    @renamed_file_paths.setter
+    def renamed_file_paths_setter(self, value: list[str]):
+        self.__renamed_file_paths = value
+        self.__renamed_paths_listbox.remove_all()
+        for path in self.__renamed_file_paths:
+            item = self.__build_path_widget(path)
+            self.__renamed_paths_listbox.append(item)
+
+    # --- Outbound properties
+
+    regex: str = GObject.Property(type=str, default="")
+    replace_pattern: str = GObject.Property(type=str, default="")
     apply_to_full_path: bool = GObject.Property(type=bool, default=False)
 
-    __model: MainModel
+    # ---
+
     __regex_editable: Adw.EntryRow
     __replace_pattern_editable: Adw.EntryRow
     __picked_paths_listbox: Gtk.ListBox
@@ -151,30 +183,9 @@ class RenamingPage(Adw.NavigationPage):
         self.set_title("Rename")
         self.set_child(content)
 
-    def __init__(self, model: MainModel):
+    def __init__(self):
         super().__init__()
-        self.__model = model
         self.__build()
-        self.connect(
-            self.__model.Signals.NOTIFY_PICKED_FILE_PATHS,
-            self.__on_picked_paths_change,
-        )
-        self.connect(
-            self.__model.Signals.NOTIFY_RENAMED_FILE_PATHS,
-            self.__on_renamed_paths_change,
-        )
-
-    def __on_picked_paths_change(self, *_args):
-        self.__picked_paths_listbox.remove_all()
-        for path in self.__model.picked_file_paths:
-            item = self.__build_path_widget(path)
-            self.__picked_paths_listbox.append(item)
-
-    def __on_renamed_paths_change(self, *_args):
-        self.__renamed_paths_listbox.remove_all()
-        for path in self.__model.renamed_file_paths:
-            item = self.__build_path_widget(path)
-            self.__renamed_paths_listbox.append(item)
 
     def __build_path_widget(self, path: str) -> Gtk.ListBoxRow:
         margin = 8
