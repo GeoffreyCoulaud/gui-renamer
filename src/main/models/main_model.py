@@ -1,4 +1,5 @@
-from enum import StrEnum
+import re
+from pathlib import Path
 
 from gi.repository import GObject  # type: ignore
 
@@ -27,7 +28,7 @@ class MainModel(GObject.Object):
     def renamed_file_paths_setter(self, value: list[str]) -> None:
         self.__renamed_file_paths = value
 
-    __regex: str
+    __regex: str = ""
 
     @GObject.Property(type=str)
     def regex(self) -> str:
@@ -38,7 +39,7 @@ class MainModel(GObject.Object):
         self.__regex = value
         self.recompute_renamed_paths()
 
-    __replace_pattern: str
+    __replace_pattern: str = ""
 
     @GObject.Property(type=str)
     def replace_pattern(self) -> str:
@@ -49,7 +50,7 @@ class MainModel(GObject.Object):
         self.__replace_pattern = value
         self.recompute_renamed_paths()
 
-    __apply_to_full_path: bool
+    __apply_to_full_path: bool = False
 
     @GObject.Property(type=bool, default=False)
     def apply_to_full_path(self) -> bool:
@@ -63,6 +64,18 @@ class MainModel(GObject.Object):
     # ---
 
     def recompute_renamed_paths(self) -> None:
-        # TODO: Implement the logic to recompute renamed file paths
-        self.renamed_file_paths = self.picked_file_paths.copy()
+        # Apply rename to full path
+        if self.apply_to_full_path:
+            self.renamed_file_paths = [
+                re.sub(self.regex, self.replace_pattern, path)
+                for path in self.picked_file_paths
+            ]
+
+        # Apply rename to file name only
+        else:
+            self.renamed_file_paths = [
+                str(p.parent / re.sub(self.regex, self.replace_pattern, p.name))
+                for p in [Path(p) for p in self.picked_file_paths]
+            ]
+
         self.notify("picked-file-paths")

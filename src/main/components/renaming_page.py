@@ -159,7 +159,7 @@ class RenamingPage(Adw.NavigationPage):
         )
         paths_section = build(
             Gtk.Box
-            + Properties(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=True)
+            + Properties(orientation=Gtk.Orientation.HORIZONTAL)
             + Children(self.__picked_paths_listbox, self.__renamed_paths_listbox)
         )
 
