@@ -16,7 +16,6 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
-import main.constants as constants
 from main.components.main_window import MainWindow
 from main.models.main_model import MainModel
 
@@ -39,7 +38,7 @@ class App(Adw.Application):
 
     def __init__(self) -> None:
         super().__init__(
-            application_id=constants.APP_ID,
+            application_id="fr.geoffrey-coulaud.gui-renamer",
             flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
         )
         self.__files_picker = Gtk.FileDialog(

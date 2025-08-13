@@ -1,4 +1,3 @@
-from enum import StrEnum
 from pathlib import Path
 
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
@@ -18,9 +17,6 @@ class RenamingPage(Adw.NavigationPage):
     """Component for the renaming page of the application."""
 
     TAG = "renaming-page"
-
-    class Signals(StrEnum):
-        PICK_FILES = "pick-files"
 
     # --- Inbound properties
 
@@ -128,6 +124,8 @@ class RenamingPage(Adw.NavigationPage):
         )
 
         # Paths new path section
+        # TODO Replace with a grid, to have word wrap and coherent lines.
+
         self.__picked_paths_listbox = build(
             Gtk.ListBox
             + BOXED_LIST_PROPERTIES
@@ -203,6 +201,8 @@ class RenamingPage(Adw.NavigationPage):
                 TypeError(f"Unknown rename target: {self.rename_target}")
 
         margin = 8
+
+        # TODO replace with a grid item
         return build(
             Gtk.ListBoxRow
             + Children(

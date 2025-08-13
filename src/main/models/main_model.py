@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-from gi.repository import GObject
+from gi.repository import GObject  # type: ignore
 
 from main.enums.rename_target_action_options import RenameTarget  # type: ignore
 
