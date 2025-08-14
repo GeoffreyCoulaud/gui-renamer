@@ -52,6 +52,9 @@ class RenamingPage(Adw.NavigationPage):
 
     # ---
 
+    __paths_model: Gio.ListModel
+
+    # TODO remove
     __picked_paths_listbox: Gtk.ListBox
     __renamed_paths_listbox: Gtk.ListBox
 
@@ -152,6 +155,24 @@ class RenamingPage(Adw.NavigationPage):
             + Children(self.__picked_paths_listbox, self.__renamed_paths_listbox)
         )
 
+        # New column view to display the paths
+        column_view = Gtk.ColumnView()
+        signal_factory = Gtk.SignalListItemFactory()
+        column_view.append_column(
+            Gtk.ColumnViewColumn.new(
+                title="Picked paths",
+                factory=signal_factory,
+            )
+        )
+        column_view.append_column(
+            Gtk.ColumnViewColumn.new(
+                title="Renamed paths",
+                factory=signal_factory,
+            )
+        )
+
+        # ---
+
         content = build(
             Adw.ToolbarView
             + TypedChild("top", header)
@@ -174,6 +195,7 @@ class RenamingPage(Adw.NavigationPage):
 
     def __init__(self):
         super().__init__()
+        self.__path_widget_factory = Gtk.SignalListItemFactory()
         self.__build()
 
     def __on_regex_changed(self, editable: Gtk.Editable):
