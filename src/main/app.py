@@ -133,19 +133,10 @@ class App(Adw.Application):
             return
 
         paths = [
-            file_path
+            cast(Gio.File | None, paths_list_model.get_item(i).get_path())
             for i in range(paths_list_model.get_n_items())
-            if (
-                (file_path := cast(Gio.File, paths_list_model.get_item(i)).get_path())
-                is not None
-            )
         ]
-
-        print("DEBUG -- Picked files:")
-        for path in paths:
-            print(f"DEBUG -- {path}")
-
-        self.__model.picked_file_paths = paths
+        self.__model.picked_file_paths = [path for path in paths if path is not None]
 
 
 def main():
