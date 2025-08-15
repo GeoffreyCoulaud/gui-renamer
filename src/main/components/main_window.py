@@ -16,24 +16,18 @@ class MainWindow(Adw.ApplicationWindow):
 
     # --- Inbound properties
 
-    __picked_file_paths: list[str]
+    __picked_paths: list[str]
 
     @GObject.Property(type=object)
-    def picked_file_paths(self):
-        return self.__picked_file_paths
+    def picked_paths(self):
+        return self.__picked_paths
 
-    @picked_file_paths.setter
-    def picked_paths_setter(self, paths: list[str]):
-        self.__picked_file_paths = paths
+    @picked_paths.setter
+    def picked_paths_setter(self, paths: list[str]) -> None:
+        self.__picked_paths = paths
+        self.__update_navigation()
 
-        # Update the navigation view based on the current paths.
-        visible_tag = self.__navigation.get_visible_page_tag()
-        if paths and visible_tag != RenamingPage.TAG:
-            self.__navigation.push_by_tag(RenamingPage.TAG)
-        elif (not paths) and visible_tag != EmptyPage.TAG:
-            self.__navigation.pop_to_tag(EmptyPage.TAG)
-
-    renamed_file_paths: list[str] = GObject.Property(type=object)
+    renamed_paths: list[str] = GObject.Property(type=object)
     rename_target: str = GObject.Property(type=str)
 
     # ---
@@ -50,14 +44,14 @@ class MainWindow(Adw.ApplicationWindow):
             RenamingPage
             + InboundProperty(
                 source=self,
-                source_property="picked-file-paths",
-                target_property="picked-file-paths",
+                source_property="picked-paths",
+                target_property="picked-paths",
                 flags=GObject.BindingFlags.SYNC_CREATE,
             )
             + InboundProperty(
                 source=self,
-                source_property="renamed-file-paths",
-                target_property="renamed-file-paths",
+                source_property="renamed-paths",
+                target_property="renamed-paths",
                 flags=GObject.BindingFlags.SYNC_CREATE,
             )
             + InboundProperty(
@@ -72,3 +66,11 @@ class MainWindow(Adw.ApplicationWindow):
         )
         self.set_content(self.__navigation)
         self.set_default_size(800, 600)
+
+    def __update_navigation(self) -> None:
+        # Update the navigation view based on the current paths.
+        visible_tag = self.__navigation.get_visible_page_tag()
+        if self.__picked_paths and visible_tag != RenamingPage.TAG:
+            self.__navigation.push_by_tag(RenamingPage.TAG)
+        elif (not self.__picked_paths) and visible_tag != EmptyPage.TAG:
+            self.__navigation.pop_to_tag(EmptyPage.TAG)

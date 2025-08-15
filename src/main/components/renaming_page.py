@@ -1,7 +1,8 @@
 from pathlib import Path
-
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
+from main.components.pair_of_strings import PairOfStrings
+from main.components.path_list_item_builder import PathLifeCycleManager
 from main.enums.action_names import ActionNames
 from main.enums.rename_target_action_options import RenameTarget
 from main.widget_builder.widget_builder import (
@@ -20,43 +21,46 @@ class RenamingPage(Adw.NavigationPage):
 
     # --- Inbound properties
 
-    __picked_file_paths: list[str]
+    __picked_paths: list[str]
 
     @GObject.Property(type=object)
-    def picked_file_paths(self):
-        return self.__picked_file_paths
+    def picked_paths(self):
+        return self.__picked_paths
 
-    @picked_file_paths.setter
-    def picked_file_paths_setter(self, value: list[str]):
-        self.__picked_file_paths = value
-        self.__picked_paths_listbox.remove_all()
-        for path in self.__picked_file_paths:
-            item = self.__build_path_widget(path)
-            self.__picked_paths_listbox.append(item)
+    @picked_paths.setter
+    def picked_paths_setter(self, paths: list[str]) -> None:
+        self.__picked_paths = paths
+        self.__update_path_pairs_model()
 
-    __renamed_file_paths: list[str]
+    __renamed_paths: list[str]
 
     @GObject.Property(type=object)
-    def renamed_file_paths(self):
-        return self.__renamed_file_paths
+    def renamed_paths(self):
+        return self.__renamed_paths
 
-    @renamed_file_paths.setter
-    def renamed_file_paths_setter(self, value: list[str]):
-        self.__renamed_file_paths = value
-        self.__renamed_paths_listbox.remove_all()
-        for path in self.__renamed_file_paths:
-            item = self.__build_path_widget(path)
-            self.__renamed_paths_listbox.append(item)
+    @renamed_paths.setter
+    def renamed_paths_setter(self, paths: list[str]) -> None:
+        self.__renamed_paths = paths
+        self.__update_path_pairs_model()
 
-    rename_target: RenameTarget = GObject.Property(type=str)
+    __rename_target: RenameTarget
+
+    @GObject.Property(type=str)
+    def rename_target(self):
+        return self.__rename_target
+
+    @rename_target.setter
+    def rename_target_setter(self, rename_target: RenameTarget) -> None:
+        self.__rename_target = rename_target
+        self.__update_path_pairs_model()
 
     # ---
 
-    __paths_model: Gio.ListModel
-
-    # TODO remove
-    __picked_paths_listbox: Gtk.ListBox
-    __renamed_paths_listbox: Gtk.ListBox
+    __path_pairs_model: Gio.ListStore
+    __picked_paths_signal_factory: Gtk.SignalListItemFactory
+    __picked_paths_lifecycle_manager: PathLifeCycleManager
+    __renamed_paths_signal_factory: Gtk.SignalListItemFactory
+    __renamed_paths_lifecycle_manager: PathLifeCycleManager
 
     def __get_menu_model(self) -> Gio.Menu:
         # Create a radio menu with 3 items for rename target selection.
@@ -91,6 +95,8 @@ class RenamingPage(Adw.NavigationPage):
             css_classes=["boxed-list"],
             selection_mode=Gtk.SelectionMode.NONE,
         )
+
+        # Header and menu
         menu_button = Gtk.MenuButton + Properties(
             icon_name="open-menu-symbolic", menu_model=self.__get_menu_model()
         )
@@ -126,48 +132,21 @@ class RenamingPage(Adw.NavigationPage):
             )
         )
 
-        # Paths new path section
-        # TODO Replace with a grid, to have word wrap and coherent lines.
-
-        self.__picked_paths_listbox = build(
-            Gtk.ListBox
-            + BOXED_LIST_PROPERTIES
-            + Properties(
-                margin_top=margin / 2,
-                margin_bottom=margin,
-                margin_start=margin,
-                margin_end=margin / 2,
-            )
+        # Column view definition
+        column_view: Gtk.ColumnView = build(
+            Gtk.ColumnView
+            + Properties(model=Gtk.NoSelection.new(self.__path_pairs_model))
         )
-        self.__renamed_paths_listbox = build(
-            Gtk.ListBox
-            + BOXED_LIST_PROPERTIES
-            + Properties(
-                margin_top=margin / 2,
-                margin_bottom=margin,
-                margin_start=margin / 2,
-                margin_end=margin,
-            )
-        )
-        paths_section = build(
-            Gtk.Box
-            + Properties(orientation=Gtk.Orientation.HORIZONTAL)
-            + Children(self.__picked_paths_listbox, self.__renamed_paths_listbox)
-        )
-
-        # New column view to display the paths
-        column_view = Gtk.ColumnView()
-        signal_factory = Gtk.SignalListItemFactory()
         column_view.append_column(
             Gtk.ColumnViewColumn.new(
                 title="Picked paths",
-                factory=signal_factory,
+                factory=self.__picked_paths_signal_factory,
             )
         )
         column_view.append_column(
             Gtk.ColumnViewColumn.new(
                 title="Renamed paths",
-                factory=signal_factory,
+                factory=self.__renamed_paths_signal_factory,
             )
         )
 
@@ -182,7 +161,7 @@ class RenamingPage(Adw.NavigationPage):
                 + Children(
                     Gtk.Box
                     + Properties(orientation=Gtk.Orientation.VERTICAL)
-                    + Children(regex_section, paths_section)
+                    + Children(regex_section, column_view)
                 ),
             )
         )
@@ -195,7 +174,26 @@ class RenamingPage(Adw.NavigationPage):
 
     def __init__(self):
         super().__init__()
-        self.__path_widget_factory = Gtk.SignalListItemFactory()
+        self.__path_pairs_model = Gio.ListStore.new(item_type=PairOfStrings)
+
+        # Factory and lifecycle manager for picked paths
+        self.__picked_paths_signal_factory = Gtk.SignalListItemFactory()
+        self.__picked_paths_lifecycle_manager = PathLifeCycleManager(
+            displayed_property_name="first"
+        )
+        self.__picked_paths_lifecycle_manager.attach_to(
+            self.__picked_paths_signal_factory
+        )
+
+        # Factory and lifecycle manager for renamed paths
+        self.__renamed_paths_signal_factory = Gtk.SignalListItemFactory()
+        self.__renamed_paths_lifecycle_manager = PathLifeCycleManager(
+            displayed_property_name="second"
+        )
+        self.__renamed_paths_lifecycle_manager.attach_to(
+            self.__renamed_paths_signal_factory
+        )
+
         self.__build()
 
     def __on_regex_changed(self, editable: Gtk.Editable):
@@ -210,33 +208,23 @@ class RenamingPage(Adw.NavigationPage):
             args=GLib.Variant.new_string(editable.get_text()),
         )
 
-    def __build_path_widget(self, path: str) -> Gtk.ListBoxRow:
-        text: str
+    def __update_path_pairs_model(self) -> None:
+        """Update the path pairs model based on the current rename target."""
+
+        transform: callable[[str], str]
         match self.rename_target:
             case RenameTarget.FULL:
-                text = path
+                transform = lambda path: path  # noqa: E731
             case RenameTarget.NAME:
-                text = Path(path).name
+                transform = lambda path: Path(path).name  # noqa: E731
             case RenameTarget.STEM:
-                text = Path(path).stem
+                transform = lambda path: Path(path).stem  # noqa: E731
             case _:
-                TypeError(f"Unknown rename target: {self.rename_target}")
+                raise ValueError(f"Unknown rename target: {self.rename_target}")
 
-        margin = 8
-
-        # TODO replace with a grid item
-        return build(
-            Gtk.ListBoxRow
-            + Children(
-                Gtk.Label
-                + Properties(
-                    label=text,
-                    css_classes=["monospace"],
-                    justify=Gtk.Justification.LEFT,
-                    margin_bottom=margin,
-                    margin_top=margin,
-                    margin_start=margin,
-                    margin_end=margin,
-                )
-            )
-        )
+        self.__path_pairs_model.remove_all()
+        for picked, renamed in zip(self.__picked_paths, self.__renamed_paths):
+            display_pair = PairOfStrings()
+            display_pair.first = transform(picked)
+            display_pair.second = transform(renamed)
+            self.__path_pairs_model.append(display_pair)

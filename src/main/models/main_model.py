@@ -9,26 +9,16 @@ from main.enums.rename_target_action_options import RenameTarget  # type: ignore
 class MainModel(GObject.Object):
     """MVC model for the main application logic."""
 
-    __picked_file_paths: list[str]
+    __picked_paths: list[str]
 
     @GObject.Property(type=object)
-    def picked_file_paths(self) -> list[str]:
-        return self.__picked_file_paths
+    def picked_paths(self) -> list[str]:
+        return self.__picked_paths
 
-    @picked_file_paths.setter
-    def picked_file_paths_setter(self, value: list[str]) -> None:
-        self.__picked_file_paths = value
+    @picked_paths.setter
+    def picked_paths_setter(self, value: list[str, str]) -> None:
+        self.__picked_paths = value
         self.recompute_renamed_paths()
-
-    __renamed_file_paths: list[str]
-
-    @GObject.Property(type=object)
-    def renamed_file_paths(self) -> list[str]:
-        return self.__renamed_file_paths
-
-    @renamed_file_paths.setter
-    def renamed_file_paths_setter(self, value: list[str]) -> None:
-        self.__renamed_file_paths = value
 
     __regex: str = ""
 
@@ -63,7 +53,13 @@ class MainModel(GObject.Object):
         self.__rename_target = value
         self.recompute_renamed_paths()
 
+    renamed_paths: list[str] = GObject.Property(type=object)
+
     # ---
+
+    def __init__(self):
+        super().__init__()
+        self.__picked_paths = []
 
     def _rename_using_full_path(self, path: str) -> str:
         """Rename the full path based on the regex and replace pattern."""
@@ -95,8 +91,4 @@ class MainModel(GObject.Object):
             case _:
                 raise ValueError(f"Unknown rename target: {self.rename_target}")
 
-        self.renamed_file_paths = [transform(path) for path in self.picked_file_paths]
-
-        # HACK - Notify that picked file paths have changed, even if they haven't.
-        # This is a workaround for proper UI updates (will be fixed in the future)
-        self.notify("picked-file-paths")
+        self.renamed_paths = [transform(p) for p in self.picked_paths]

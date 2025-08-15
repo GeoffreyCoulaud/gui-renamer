@@ -5,12 +5,6 @@ from typing import cast
 
 import gi  # type: ignore
 
-from main.enums.action_names import ActionNames
-from main.widget_builder.widget_builder import (  # type: ignore
-    Arguments,
-    InboundProperty,
-    build,
-)
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -18,6 +12,12 @@ from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
 from main.components.main_window import MainWindow
 from main.models.main_model import MainModel
+from main.enums.action_names import ActionNames
+from main.widget_builder.widget_builder import (  # type: ignore
+    Arguments,
+    InboundProperty,
+    build,
+)
 
 VARIANT_TYPE_STRING = GLib.VariantType.new("s")
 
@@ -93,14 +93,14 @@ class App(Adw.Application):
             + Arguments(application=self)
             + InboundProperty(
                 source=self.__model,
-                source_property="picked-file-paths",
-                target_property="picked-file-paths",
+                source_property="picked-paths",
+                target_property="picked-paths",
                 flags=GObject.BindingFlags.SYNC_CREATE,
             )
             + InboundProperty(
                 source=self.__model,
-                source_property="renamed-file-paths",
-                target_property="renamed-file-paths",
+                source_property="renamed-paths",
+                target_property="renamed-paths",
                 flags=GObject.BindingFlags.SYNC_CREATE,
             )
             + InboundProperty(
@@ -136,7 +136,7 @@ class App(Adw.Application):
             cast(Gio.File | None, paths_list_model.get_item(i).get_path())
             for i in range(paths_list_model.get_n_items())
         ]
-        self.__model.picked_file_paths = [path for path in paths if path is not None]
+        self.__model.picked_paths = [path for path in paths if path is not None]
 
 
 def main():
