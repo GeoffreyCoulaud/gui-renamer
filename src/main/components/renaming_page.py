@@ -2,7 +2,7 @@ from pathlib import Path
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
 from main.components.pair_of_strings import PairOfStrings
-from main.components.path_list_item_builder import PathLifeCycleManager
+from main.components.path_list_item_builder import PathPairLifeCycleManager
 from main.enums.action_names import ActionNames
 from main.enums.rename_target_action_options import RenameTarget
 from main.widget_builder.widget_builder import (
@@ -57,10 +57,8 @@ class RenamingPage(Adw.NavigationPage):
     # ---
 
     __path_pairs_model: Gio.ListStore
-    __picked_paths_signal_factory: Gtk.SignalListItemFactory
-    __picked_paths_lifecycle_manager: PathLifeCycleManager
-    __renamed_paths_signal_factory: Gtk.SignalListItemFactory
-    __renamed_paths_lifecycle_manager: PathLifeCycleManager
+    __path_pairs_signal_factory: Gtk.SignalListItemFactory
+    __path_pairs_lifecycle_manager: PathPairLifeCycleManager
 
     def __get_menu_model(self) -> Gio.Menu:
         # Create a radio menu with 3 items for rename target selection.
@@ -132,37 +130,36 @@ class RenamingPage(Adw.NavigationPage):
             )
         )
 
-        # Column view definition
-        column_view: Gtk.ColumnView = build(
-            Gtk.ColumnView
-            + Properties(model=Gtk.NoSelection.new(self.__path_pairs_model))
-        )
-        column_view.append_column(
-            Gtk.ColumnViewColumn.new(
-                title="Picked paths",
-                factory=self.__picked_paths_signal_factory,
+        # Paths view definition
+        list_view = build(
+            Gtk.ScrolledWindow
+            + Properties(
+                vexpand=True,
+                hscrollbar_policy=Gtk.PolicyType.NEVER,
+                vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
+            )
+            + Children(
+                Gtk.ListView
+                + Properties(
+                    css_classes=["card"],
+                    model=Gtk.NoSelection.new(model=self.__path_pairs_model),
+                    factory=self.__path_pairs_signal_factory,
+                    margin_top=margin / 2,
+                    margin_bottom=margin,
+                    margin_start=margin,
+                    margin_end=margin,
+                )
             )
         )
-        column_view.append_column(
-            Gtk.ColumnViewColumn.new(
-                title="Renamed paths",
-                factory=self.__renamed_paths_signal_factory,
-            )
-        )
-
-        # ---
 
         content = build(
             Adw.ToolbarView
             + TypedChild("top", header)
             + TypedChild(
                 "content",
-                Adw.ClampScrollable
-                + Children(
-                    Gtk.Box
-                    + Properties(orientation=Gtk.Orientation.VERTICAL)
-                    + Children(regex_section, column_view)
-                ),
+                Gtk.Box
+                + Properties(orientation=Gtk.Orientation.VERTICAL)
+                + Children(regex_section, list_view),
             )
         )
 
@@ -175,25 +172,9 @@ class RenamingPage(Adw.NavigationPage):
     def __init__(self):
         super().__init__()
         self.__path_pairs_model = Gio.ListStore.new(item_type=PairOfStrings)
-
-        # Factory and lifecycle manager for picked paths
-        self.__picked_paths_signal_factory = Gtk.SignalListItemFactory()
-        self.__picked_paths_lifecycle_manager = PathLifeCycleManager(
-            displayed_property_name="first"
-        )
-        self.__picked_paths_lifecycle_manager.attach_to(
-            self.__picked_paths_signal_factory
-        )
-
-        # Factory and lifecycle manager for renamed paths
-        self.__renamed_paths_signal_factory = Gtk.SignalListItemFactory()
-        self.__renamed_paths_lifecycle_manager = PathLifeCycleManager(
-            displayed_property_name="second"
-        )
-        self.__renamed_paths_lifecycle_manager.attach_to(
-            self.__renamed_paths_signal_factory
-        )
-
+        self.__path_pairs_signal_factory = Gtk.SignalListItemFactory()
+        self.__path_pairs_lifecycle_manager = PathPairLifeCycleManager()
+        self.__path_pairs_lifecycle_manager.attach_to(self.__path_pairs_signal_factory)
         self.__build()
 
     def __on_regex_changed(self, editable: Gtk.Editable):
@@ -223,8 +204,12 @@ class RenamingPage(Adw.NavigationPage):
                 raise ValueError(f"Unknown rename target: {self.rename_target}")
 
         self.__path_pairs_model.remove_all()
-        for picked, renamed in zip(self.__picked_paths, self.__renamed_paths):
+        for i, (picked, renamed) in enumerate(
+            zip(self.__picked_paths, self.__renamed_paths)
+        ):
             display_pair = PairOfStrings()
             display_pair.first = transform(picked)
             display_pair.second = transform(renamed)
+            display_pair.is_first = i == 0
+            display_pair.is_last = i == len(self.__picked_paths) - 1
             self.__path_pairs_model.append(display_pair)

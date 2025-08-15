@@ -4,6 +4,9 @@ from gi.repository import GObject  # type: ignore
 class PairOfStrings(GObject.GObject):
     """Simple class to hold a pair of strings"""
 
+    is_first: bool = GObject.Property(type=bool, default=False)
+    is_last: bool = GObject.Property(type=bool, default=False)
+
     first: str = GObject.Property(type=str)
     second: str = GObject.Property(type=str)
 
