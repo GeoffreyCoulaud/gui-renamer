@@ -199,6 +199,14 @@ class RenamingPage(Adw.NavigationPage):
     def __update_path_pairs_model(self) -> None:
         """Update the path pairs model based on the current rename target."""
 
+        # HACK - Avoid unset values that only happen at startup.
+        if (
+            not self.__picked_paths
+            or not self.__renamed_paths
+            or not self.__rename_target
+        ):
+            return
+
         transform: callable[[str], str]
         match self.rename_target:
             case RenameTarget.FULL:
