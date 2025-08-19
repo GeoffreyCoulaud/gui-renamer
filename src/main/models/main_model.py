@@ -4,7 +4,7 @@ from pathlib import Path
 from gi.repository import GObject  # type: ignore
 
 from main.enums.app_state import AppState
-from main.enums.rename_target_action_options import RenameTarget  # type: ignore
+from main.enums.rename_target import RenameTarget  # type: ignore
 
 
 class MainModel(GObject.Object):

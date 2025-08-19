@@ -5,7 +5,7 @@ from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 from main.components.pair_of_strings import PairOfStrings
 from main.components.path_list_item_builder import PathPairLifeCycleManager
 from main.enums.action_names import ActionNames
-from main.enums.rename_target_action_options import RenameTarget
+from main.enums.rename_target import RenameTarget
 from main.widget_builder.widget_builder import (
     Children,
     Handlers,
