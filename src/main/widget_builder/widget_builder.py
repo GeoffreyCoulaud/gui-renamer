@@ -134,14 +134,11 @@ class WidgetBuilder(Generic[_BuiltWidget]):
     def __apply_properties(self, widget: _BuiltWidget) -> None:
         """Apply a set of properties to a widget"""
         for key, value in self.__properties.items():
-            clean_key = key.replace("-", "_")
-            if key != clean_key:
-                logging.warning("Consider using underscores for property %s", key)
-            widget.set_property(clean_key, value)
+            widget.set_property(key.replace("_", "-"), value)
 
     def __apply_handlers(self, widget: Widget) -> None:
         for signal, handler in self.__handlers.items():
-            widget.connect(signal, handler)
+            widget.connect(signal.replace("_", "-"), handler)
 
     def __check_no_null_children(
         self, widget: Widget, children: Sequence[Widget | None]

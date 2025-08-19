@@ -6,7 +6,7 @@ from main.components.pair_of_strings import PairOfStrings
 from main.components.path_list_item_builder import PathPairLifeCycleManager
 from main.enums.action_names import ActionNames
 from main.enums.rename_target import RenameTarget
-from main.models.mistakes import Mistake
+from main.models.mistakes import InvalidRegexMistake, Mistake, RenameDestinationMistake
 from main.widget_builder.widget_builder import (
     Children,
     Handlers,
@@ -64,15 +64,41 @@ class RenamingPage(Adw.NavigationPage):
 
     @mistakes.setter
     def mistakes_setter(self, mistakes: list[Mistake]) -> None:
+        """Set the list of mistakes and update the UI accordingly."""
+
+        # HACK - Avoid unset values that only happen at startup.
+        if mistakes is None:
+            return
         self.__mistakes = mistakes
-        # TODO update the info banner with the mistakes
+
+        ERROR_CSS_CLASS = "error"
+
+        # Update the regex editable
+        if any(isinstance(m, InvalidRegexMistake) for m in mistakes):
+            self.__regex_editable.add_css_class(ERROR_CSS_CLASS)
+        else:
+            self.__regex_editable.remove_css_class(ERROR_CSS_CLASS)
+
+        # Update the replace pattern editable
+        if any(isinstance(m, RenameDestinationMistake) for m in mistakes):
+            self.__replace_pattern_editable.add_css_class(ERROR_CSS_CLASS)
+        else:
+            self.__replace_pattern_editable.remove_css_class(ERROR_CSS_CLASS)
+
+        # Update the info banner
+        self.__info_banner.set_revealed(bool(mistakes))
+        if mistakes:
+            self.__info_banner.set_title(mistakes[0].message)
 
     # ---
 
     __items_model: Gio.ListStore
+    __items_selection_model: Gtk.SelectionModel
     __items_signal_factory: Gtk.SignalListItemFactory
     __items_lifecycle_manager: PathPairLifeCycleManager
 
+    __regex_editable: Adw.EntryRow
+    __replace_pattern_editable: Adw.EntryRow
     __info_banner: Adw.Banner
 
     def __get_menu_model(self) -> Gio.Menu:
@@ -138,15 +164,19 @@ class RenamingPage(Adw.NavigationPage):
         )
 
         # Collapsible info banner
-        self.__info_banner = build(Adw.Banner + Properties(css_classes=["warning"]))
+        self.__info_banner = build(
+            Adw.Banner
+            + Properties(css_classes=["warning"], button_label="View")
+            + Handlers(button_clicked=self.__on_mistake_banner_button_clicked)
+        )
 
         # Regex section
-        regex_editable = build(
+        self.__regex_editable = build(
             Adw.EntryRow
             + Properties(title="Regex Pattern", css_classes=["monospace"])
             + Handlers(changed=self.__on_regex_changed)
         )
-        replace_pattern_editable = build(
+        self.__replace_pattern_editable = build(
             Adw.EntryRow
             + Properties(title="Replace Pattern", css_classes=["monospace"])
             + Handlers(changed=self.__on_replace_pattern_changed)
@@ -161,8 +191,8 @@ class RenamingPage(Adw.NavigationPage):
                 margin_end=margin,
             )
             + Children(
-                regex_editable,
-                replace_pattern_editable,
+                self.__regex_editable,
+                self.__replace_pattern_editable,
             )
         )
 
@@ -178,7 +208,7 @@ class RenamingPage(Adw.NavigationPage):
                 Gtk.ListView
                 + Properties(
                     css_classes=["card"],
-                    model=Gtk.NoSelection.new(model=self.__items_model),
+                    model=self.__items_selection_model,
                     factory=self.__items_signal_factory,
                     margin_top=margin / 2,
                     margin_bottom=margin,
@@ -208,6 +238,7 @@ class RenamingPage(Adw.NavigationPage):
     def __init__(self):
         super().__init__()
         self.__items_model = Gio.ListStore.new(item_type=PairOfStrings)
+        self.__items_selection_model = Gtk.SingleSelection.new(model=self.__items_model)
         self.__items_signal_factory = Gtk.SignalListItemFactory()
         self.__items_lifecycle_manager = PathPairLifeCycleManager()
         self.__items_lifecycle_manager.attach_to(self.__items_signal_factory)
@@ -224,6 +255,23 @@ class RenamingPage(Adw.NavigationPage):
             name=f"app.{ActionNames.REPLACE_PATTERN}",
             args=GLib.Variant.new_string(editable.get_text()),
         )
+
+    def __on_mistake_banner_button_clicked(self, *_args):
+        if not self.__mistakes:
+            return
+        match first := self.__mistakes[0]:
+            case InvalidRegexMistake():
+                # Regex mistake, focus the regex editable.
+                self.__regex_editable.grab_focus()
+            case RenameDestinationMistake():
+                # Destination mistake, select the item and focus the editable.
+                self.__replace_pattern_editable.grab_focus()
+                self.__items_selection_model.select_item(
+                    position=first.culprit_index, unselect_rest=True
+                )
+            case _:
+                # For other mistakes, just log the message.
+                print(f"Unhandled mistake: {first.message}")
 
     def __update_items_model(self) -> None:
         """Update the path pairs model based on the current rename target."""
