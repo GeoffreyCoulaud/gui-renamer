@@ -158,6 +158,12 @@ class App(Adw.Application):
                 target_property="app-state",
                 flags=GObject.BindingFlags.SYNC_CREATE,
             )
+            + InboundProperty(
+                source=self.__model,
+                source_property="mistakes",
+                target_property="mistakes",
+                flags=GObject.BindingFlags.SYNC_CREATE,
+            )
         )
         self.__window.present()
 

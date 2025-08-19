@@ -4,6 +4,7 @@ from main.components.empty_page import EmptyPage
 from main.components.renamed_page import RenamedPage
 from main.components.renaming_page import RenamingPage
 from main.enums.app_state import AppState
+from main.models.mistakes import Mistake
 from main.widget_builder.widget_builder import (
     Children,
     InboundProperty,
@@ -31,6 +32,7 @@ class MainWindow(Adw.ApplicationWindow):
 
     picked_paths: list[str] = GObject.Property(type=object)
     renamed_paths: list[str] = GObject.Property(type=object)
+    mistakes: list[Mistake] = GObject.Property(type=object)
     rename_target: str = GObject.Property(type=str)
 
     # ---
@@ -62,6 +64,12 @@ class MainWindow(Adw.ApplicationWindow):
                 source=self,
                 source_property="rename-target",
                 target_property="rename_target",
+                flags=GObject.BindingFlags.SYNC_CREATE,
+            )
+            + InboundProperty(
+                source=self,
+                source_property="mistakes",
+                target_property="mistakes",
                 flags=GObject.BindingFlags.SYNC_CREATE,
             )
         )

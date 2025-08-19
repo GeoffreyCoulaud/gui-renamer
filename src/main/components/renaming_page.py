@@ -6,6 +6,7 @@ from main.components.pair_of_strings import PairOfStrings
 from main.components.path_list_item_builder import PathPairLifeCycleManager
 from main.enums.action_names import ActionNames
 from main.enums.rename_target import RenameTarget
+from main.models.mistakes import Mistake
 from main.widget_builder.widget_builder import (
     Children,
     Handlers,
@@ -31,7 +32,7 @@ class RenamingPage(Adw.NavigationPage):
     @picked_paths.setter
     def picked_paths_setter(self, paths: list[str]) -> None:
         self.__picked_paths = paths
-        self.__update_path_pairs_model()
+        self.__update_items_model()
 
     __renamed_paths: list[str]
 
@@ -42,7 +43,7 @@ class RenamingPage(Adw.NavigationPage):
     @renamed_paths.setter
     def renamed_paths_setter(self, paths: list[str]) -> None:
         self.__renamed_paths = paths
-        self.__update_path_pairs_model()
+        self.__update_items_model()
 
     __rename_target: RenameTarget
 
@@ -53,13 +54,26 @@ class RenamingPage(Adw.NavigationPage):
     @rename_target.setter
     def rename_target_setter(self, rename_target: RenameTarget) -> None:
         self.__rename_target = rename_target
-        self.__update_path_pairs_model()
+        self.__update_items_model()
+
+    __mistakes: list[Mistake]
+
+    @GObject.Property(type=object)
+    def mistakes(self):
+        return self.__mistakes
+
+    @mistakes.setter
+    def mistakes_setter(self, mistakes: list[Mistake]) -> None:
+        self.__mistakes = mistakes
+        # TODO update the info banner with the mistakes
 
     # ---
 
-    __path_pairs_model: Gio.ListStore
-    __path_pairs_signal_factory: Gtk.SignalListItemFactory
-    __path_pairs_lifecycle_manager: PathPairLifeCycleManager
+    __items_model: Gio.ListStore
+    __items_signal_factory: Gtk.SignalListItemFactory
+    __items_lifecycle_manager: PathPairLifeCycleManager
+
+    __info_banner: Adw.Banner
 
     def __get_menu_model(self) -> Gio.Menu:
         # Create a radio menu with 3 items for rename target selection.
@@ -123,6 +137,9 @@ class RenamingPage(Adw.NavigationPage):
             + TypedChild("end", Gtk.Box + Children(apply_button, menu_button))
         )
 
+        # Collapsible info banner
+        self.__info_banner = build(Adw.Banner + Properties(css_classes=["warning"]))
+
         # Regex section
         regex_editable = build(
             Adw.EntryRow
@@ -161,8 +178,8 @@ class RenamingPage(Adw.NavigationPage):
                 Gtk.ListView
                 + Properties(
                     css_classes=["card"],
-                    model=Gtk.NoSelection.new(model=self.__path_pairs_model),
-                    factory=self.__path_pairs_signal_factory,
+                    model=Gtk.NoSelection.new(model=self.__items_model),
+                    factory=self.__items_signal_factory,
                     margin_top=margin / 2,
                     margin_bottom=margin,
                     margin_start=margin,
@@ -178,7 +195,7 @@ class RenamingPage(Adw.NavigationPage):
                 "content",
                 Gtk.Box
                 + Properties(orientation=Gtk.Orientation.VERTICAL)
-                + Children(regex_section, list_view),
+                + Children(self.__info_banner, regex_section, list_view),
             )
         )
 
@@ -190,10 +207,10 @@ class RenamingPage(Adw.NavigationPage):
 
     def __init__(self):
         super().__init__()
-        self.__path_pairs_model = Gio.ListStore.new(item_type=PairOfStrings)
-        self.__path_pairs_signal_factory = Gtk.SignalListItemFactory()
-        self.__path_pairs_lifecycle_manager = PathPairLifeCycleManager()
-        self.__path_pairs_lifecycle_manager.attach_to(self.__path_pairs_signal_factory)
+        self.__items_model = Gio.ListStore.new(item_type=PairOfStrings)
+        self.__items_signal_factory = Gtk.SignalListItemFactory()
+        self.__items_lifecycle_manager = PathPairLifeCycleManager()
+        self.__items_lifecycle_manager.attach_to(self.__items_signal_factory)
         self.__build()
 
     def __on_regex_changed(self, editable: Gtk.Editable):
@@ -208,7 +225,7 @@ class RenamingPage(Adw.NavigationPage):
             args=GLib.Variant.new_string(editable.get_text()),
         )
 
-    def __update_path_pairs_model(self) -> None:
+    def __update_items_model(self) -> None:
         """Update the path pairs model based on the current rename target."""
 
         # HACK - Avoid unset values that only happen at startup.
@@ -230,7 +247,7 @@ class RenamingPage(Adw.NavigationPage):
             case _:
                 raise ValueError(f"Unknown rename target: {self.rename_target}")
 
-        self.__path_pairs_model.remove_all()
+        self.__items_model.remove_all()
         for i, (picked, renamed) in enumerate(
             zip(self.__picked_paths, self.__renamed_paths)
         ):
@@ -239,4 +256,4 @@ class RenamingPage(Adw.NavigationPage):
             display_pair.second = transform(renamed)
             display_pair.is_first = i == 0
             display_pair.is_last = i == len(self.__picked_paths) - 1
-            self.__path_pairs_model.append(display_pair)
+            self.__items_model.append(display_pair)

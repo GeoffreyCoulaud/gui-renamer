@@ -1,10 +1,20 @@
+from collections import defaultdict
 import re
+from re import Pattern
 from pathlib import Path
 
 from gi.repository import GObject  # type: ignore
+from pathvalidate import validate_filepath, ValidationError
 
 from main.enums.app_state import AppState
-from main.enums.rename_target import RenameTarget  # type: ignore
+from main.enums.rename_target import RenameTarget
+from main.models.mistakes import (
+    DuplicateMistake,
+    ExistsMistake,
+    InvalidDestinationMistake,
+    InvalidRegexMistake,
+    Mistake,
+)  # type: ignore
 
 
 class MainModel(GObject.Object):
@@ -60,6 +70,7 @@ class MainModel(GObject.Object):
     is_apply_enabled: bool = GObject.Property(type=bool, default=False)
     is_undo_enabled: bool = GObject.Property(type=bool, default=False)
     app_state: AppState = GObject.Property(type=str, default=AppState.EMPTY)
+    mistakes: list[Mistake] = GObject.Property(type=object)
 
     # ---
 
@@ -67,26 +78,26 @@ class MainModel(GObject.Object):
         super().__init__()
         self.__picked_paths = []
 
-    def _rename_using_full_path(self, path: str) -> str:
+    def _rename_using_full_path(self, regex: Pattern, path: str) -> str:
         """Rename the full path based on the regex and replace pattern."""
-        return re.sub(self.regex, self.replace_pattern, path)
+        return regex.sub(self.replace_pattern, path)
 
-    def _rename_using_name(self, path: str) -> str:
+    def _rename_using_name(self, regex: Pattern, path: str) -> str:
         """Rename the file name based on the regex and replace pattern."""
         p = Path(path)
-        name = re.sub(self.regex, self.replace_pattern, p.name)
+        name = regex.sub(self.replace_pattern, p.name)
         return str(p.parent / name)
 
-    def _rename_using_stem(self, path: str) -> str:
+    def _rename_using_stem(self, regex: Pattern, path: str) -> str:
         """Rename the file stem based on the regex and replace pattern."""
         p = Path(path)
-        name = p.with_stem(f"{re.sub(self.regex, self.replace_pattern, p.stem)}")
+        name = p.with_stem(f"{regex.sub(self.replace_pattern, p.stem)}")
         return str(p.parent / name)
 
     def recompute_renamed_paths(self) -> None:
         """Recompute the renamed file paths based on the current regex and replace pattern."""
 
-        transform: callable[[str], str]
+        transform: callable[[Pattern, str], str]
         match self.rename_target:
             case RenameTarget.FULL:
                 transform = self._rename_using_full_path
@@ -97,7 +108,43 @@ class MainModel(GObject.Object):
             case _:
                 raise ValueError(f"Unknown rename target: {self.rename_target}")
 
-        self.renamed_paths = [transform(p) for p in self.picked_paths]
+        # Validate the regex
+        try:
+            pattern = re.compile(pattern=self.regex)
+        except Exception:
+            self.mistakes = [InvalidRegexMistake()]
+            return
+
+        # Rename the paths
+        self.renamed_paths = [transform(pattern, path) for path in self.picked_paths]
+        self.check_for_renamed_paths_mistakes()
+
+    def check_for_renamed_paths_mistakes(self) -> None:
+        mistakes: list[Mistake] = []
+        buckets: defaultdict[str, list[int]] = defaultdict(list)
+
+        for i, renamed_path in enumerate(self.renamed_paths):
+            buckets[renamed_path].append(i)
+
+            # Validate that the path is valid for the current platform
+            try:
+                validate_filepath(file_path=renamed_path, platform="auto")
+            except ValidationError:
+                mistakes.append(InvalidDestinationMistake(i))
+                continue
+
+            # Check if the path already exists
+            if Path(renamed_path).exists():
+                mistakes.append(ExistsMistake(i))
+
+        # Check for duplicate renamed paths
+        for renamed_path, indexes in buckets.items():
+            if len(indexes) > 1:
+                for index in indexes:
+                    mistakes.append(DuplicateMistake(index))
+
+        # Set the mistakes, if any
+        self.mistakes = mistakes
 
     def apply_renaming(self) -> None:
         """Apply the renaming to the picked paths"""
