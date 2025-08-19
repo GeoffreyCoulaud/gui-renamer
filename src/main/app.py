@@ -5,21 +5,21 @@ from typing import cast
 
 import gi  # type: ignore
 
-
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
 from main.components.main_window import MainWindow
-from main.models.main_model import MainModel
 from main.enums.action_names import ActionNames
+from main.models.main_model import MainModel
 from main.widget_builder.widget_builder import (  # type: ignore
     Arguments,
     InboundProperty,
     build,
 )
 
-VARIANT_TYPE_STRING = GLib.VariantType.new("s")
+# HACK - For some reason, command is not the primary on MacOS...
+PRIMARY_KEY = "<Meta>" if sys.platform == "darwin" else "<primary>"
 
 
 class App(Adw.Application):
@@ -31,6 +31,7 @@ class App(Adw.Application):
 
     __quit_action: Gio.Action
     __pick_files_action: Gio.Action
+    __apply_renaming_action: Gio.Action
 
     __rename_target_action: Gio.Action
     __regex_action: Gio.Action
@@ -53,7 +54,10 @@ class App(Adw.Application):
         self.__quit_action = Gio.SimpleAction.new(name=ActionNames.QUIT)
         self.__quit_action.connect("activate", lambda *_: self.quit())
         self.add_action(self.__quit_action)
-        self.set_accels_for_action("app.quit", ["<primary>q"])
+        self.set_accels_for_action(
+            f"app.{ActionNames.QUIT}",
+            [f"{PRIMARY_KEY}q"],
+        )
 
         # Rename target action
         self.__rename_target_action = Gio.PropertyAction.new(
@@ -85,6 +89,26 @@ class App(Adw.Application):
         self.__pick_files_action.connect(
             "activate",
             self.__on_files_picker_requested,
+        )
+
+        # Apply renaming action
+        self.__apply_renaming_action = Gio.SimpleAction.new(
+            name=ActionNames.APPLY_RENAMING
+        )
+        self.add_action(self.__apply_renaming_action)
+        self.__apply_renaming_action.connect(
+            "activate",
+            lambda *_: self.__model.apply_renaming(),
+        )
+        self.set_accels_for_action(
+            f"app.{ActionNames.APPLY_RENAMING}",
+            [f"{PRIMARY_KEY}Return"],
+        )
+        self.__model.bind_property(
+            source_property="is-renaming-enabled",
+            target=self.__apply_renaming_action,
+            target_property="enabled",
+            flags=GObject.BindingFlags.SYNC_CREATE,
         )
 
     def do_activate(self):

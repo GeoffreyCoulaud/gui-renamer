@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
 from main.components.pair_of_strings import PairOfStrings
@@ -98,10 +99,16 @@ class RenamingPage(Adw.NavigationPage):
         menu_button = Gtk.MenuButton + Properties(
             icon_name="open-menu-symbolic", menu_model=self.__get_menu_model()
         )
+        apply_button = Gtk.Button + Properties(
+            label="Apply",
+            css_classes=["suggested-action"],
+            action_name=f"app.{ActionNames.APPLY_RENAMING}",
+        )
+        end_box = Gtk.Box + Properties(spacing=6) + Children(apply_button, menu_button)
         header = (
             Adw.HeaderBar
             + Children(Adw.WindowTitle + Properties(title="Renamer"))
-            + TypedChild("end", menu_button)
+            + TypedChild("end", end_box)
         )
 
         # Regex section

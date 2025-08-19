@@ -18,6 +18,7 @@ class MainModel(GObject.Object):
     @picked_paths.setter
     def picked_paths_setter(self, value: list[str, str]) -> None:
         self.__picked_paths = value
+        self.renaming_enabled = len(value) > 0
         self.recompute_renamed_paths()
 
     __regex: str = ""
@@ -54,6 +55,8 @@ class MainModel(GObject.Object):
         self.recompute_renamed_paths()
 
     renamed_paths: list[str] = GObject.Property(type=object)
+
+    is_renaming_enabled: bool = GObject.Property(type=bool, default=False)
 
     # ---
 
@@ -92,3 +95,9 @@ class MainModel(GObject.Object):
                 raise ValueError(f"Unknown rename target: {self.rename_target}")
 
         self.renamed_paths = [transform(p) for p in self.picked_paths]
+
+    def apply_renaming(self) -> None:
+        """Apply the renaming to the picked paths"""
+        print("PLACEHOLDER - Should rename")
+        self.picked_paths = []
+        # TODO implement the actual renaming logic
