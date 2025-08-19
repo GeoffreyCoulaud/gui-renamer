@@ -277,6 +277,16 @@ class WidgetBuilder(Generic[_BuiltWidget]):
                 if t == "title":
                     widget.set_title_widget(child)
 
+        # Gtk.ActionBar
+        elif isinstance(widget, Gtk.ActionBar):
+            for t, child in resolved:
+                if t == "start":
+                    widget.pack_start(child)
+                if t == "end":
+                    widget.pack_end(child)
+                if t == "center":
+                    widget.set_center_widget(child)
+
         # Adw.ActionRow
         # Adw.EntryRow
         elif isinstance(widget, Adw.ActionRow) or isinstance(widget, Adw.EntryRow):

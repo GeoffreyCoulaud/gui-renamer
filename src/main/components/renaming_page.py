@@ -81,10 +81,17 @@ class RenamingPage(Adw.NavigationPage):
         )
 
         # Create a Gio.Menu and append the items.
+        rename_target_menu = Gio.Menu()
+        rename_target_menu.append_item(stem)
+        rename_target_menu.append_item(name)
+        rename_target_menu.append_item(full)
         menu = Gio.Menu()
-        menu.append_item(stem)
-        menu.append_item(name)
-        menu.append_item(full)
+        menu.append_item(
+            Gio.MenuItem.new_section(
+                label="Rename target",
+                section=rename_target_menu,
+            )
+        )
 
         return menu
 
@@ -99,16 +106,21 @@ class RenamingPage(Adw.NavigationPage):
         menu_button = Gtk.MenuButton + Properties(
             icon_name="open-menu-symbolic", menu_model=self.__get_menu_model()
         )
-        apply_button = Gtk.Button + Properties(
-            label="Apply",
-            css_classes=["suggested-action"],
-            action_name=f"app.{ActionNames.APPLY_RENAMING}",
+        apply_button = (
+            Gtk.Button
+            + Properties(
+                action_name=f"app.{ActionNames.APPLY_RENAMING}",
+                tooltip_text="Rename files with the current settings",
+            )
+            + Children(
+                Adw.ButtonContent
+                + Properties(icon_name="document-save-symbolic", label="Apply")
+            )
         )
-        end_box = Gtk.Box + Properties(spacing=6) + Children(apply_button, menu_button)
         header = (
             Adw.HeaderBar
             + Children(Adw.WindowTitle + Properties(title="Renamer"))
-            + TypedChild("end", end_box)
+            + TypedChild("end", Gtk.Box + Children(apply_button, menu_button))
         )
 
         # Regex section

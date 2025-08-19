@@ -18,7 +18,7 @@ class MainModel(GObject.Object):
     @picked_paths.setter
     def picked_paths_setter(self, value: list[str, str]) -> None:
         self.__picked_paths = value
-        self.renaming_enabled = len(value) > 0
+        self.is_renaming_enabled = len(value) > 0
         self.recompute_renamed_paths()
 
     __regex: str = ""
