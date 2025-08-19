@@ -3,6 +3,7 @@ from pathlib import Path
 
 from gi.repository import GObject  # type: ignore
 
+from main.enums.app_state import AppState
 from main.enums.rename_target_action_options import RenameTarget  # type: ignore
 
 
@@ -18,7 +19,8 @@ class MainModel(GObject.Object):
     @picked_paths.setter
     def picked_paths_setter(self, value: list[str, str]) -> None:
         self.__picked_paths = value
-        self.is_renaming_enabled = len(value) > 0
+        self.is_apply_enabled = bool(value)
+        self.app_state = AppState.RENAMING if value else AppState.EMPTY
         self.recompute_renamed_paths()
 
     __regex: str = ""
@@ -55,8 +57,9 @@ class MainModel(GObject.Object):
         self.recompute_renamed_paths()
 
     renamed_paths: list[str] = GObject.Property(type=object)
-
-    is_renaming_enabled: bool = GObject.Property(type=bool, default=False)
+    is_apply_enabled: bool = GObject.Property(type=bool, default=False)
+    is_undo_enabled: bool = GObject.Property(type=bool, default=False)
+    app_state: AppState = GObject.Property(type=str, default=AppState.EMPTY)
 
     # ---
 
@@ -98,6 +101,18 @@ class MainModel(GObject.Object):
 
     def apply_renaming(self) -> None:
         """Apply the renaming to the picked paths"""
+
         print("PLACEHOLDER - Should rename")
-        self.picked_paths = []
         # TODO implement the actual renaming logic
+
+        self.app_state = AppState.RENAMED
+        self.is_undo_enabled = True
+
+    def undo_renaming(self) -> None:
+        """Undo the rename operation."""
+
+        print("PLACEHOLDER - Should undo renaming")
+        # TODO implement the actual undo logic
+
+        self.app_state = AppState.RENAMING
+        self.is_undo_enabled = False

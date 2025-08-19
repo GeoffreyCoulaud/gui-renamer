@@ -31,7 +31,8 @@ class App(Adw.Application):
 
     __quit_action: Gio.Action
     __pick_files_action: Gio.Action
-    __apply_renaming_action: Gio.Action
+    __apply_action: Gio.Action
+    __undo_renaming_action: Gio.Action
 
     __rename_target_action: Gio.Action
     __regex_action: Gio.Action
@@ -92,11 +93,9 @@ class App(Adw.Application):
         )
 
         # Apply renaming action
-        self.__apply_renaming_action = Gio.SimpleAction.new(
-            name=ActionNames.APPLY_RENAMING
-        )
-        self.add_action(self.__apply_renaming_action)
-        self.__apply_renaming_action.connect(
+        self.__apply_action = Gio.SimpleAction.new(name=ActionNames.APPLY_RENAMING)
+        self.add_action(self.__apply_action)
+        self.__apply_action.connect(
             "activate",
             lambda *_: self.__model.apply_renaming(),
         )
@@ -105,8 +104,28 @@ class App(Adw.Application):
             [f"{PRIMARY_KEY}Return"],
         )
         self.__model.bind_property(
-            source_property="is-renaming-enabled",
-            target=self.__apply_renaming_action,
+            source_property="is-apply-enabled",
+            target=self.__apply_action,
+            target_property="enabled",
+            flags=GObject.BindingFlags.SYNC_CREATE,
+        )
+
+        # Undo renaming action
+        self.__undo_renaming_action = Gio.SimpleAction.new(
+            name=ActionNames.UNDO_RENAMING
+        )
+        self.add_action(self.__undo_renaming_action)
+        self.__undo_renaming_action.connect(
+            "activate",
+            lambda *_: self.__model.undo_renaming(),
+        )
+        self.set_accels_for_action(
+            f"app.{ActionNames.UNDO_RENAMING}",
+            [f"{PRIMARY_KEY}z"],
+        )
+        self.__model.bind_property(
+            source_property="is-apply-enabled",
+            target=self.__undo_renaming_action,
             target_property="enabled",
             flags=GObject.BindingFlags.SYNC_CREATE,
         )
@@ -131,6 +150,12 @@ class App(Adw.Application):
                 source=self.__model,
                 source_property="rename-target",
                 target_property="rename-target",
+                flags=GObject.BindingFlags.SYNC_CREATE,
+            )
+            + InboundProperty(
+                source=self.__model,
+                source_property="app-state",
+                target_property="app-state",
                 flags=GObject.BindingFlags.SYNC_CREATE,
             )
         )
