@@ -13,6 +13,7 @@ from main.models.mistakes import (
     ExistsMistake,
     InvalidDestinationMistake,
     InvalidRegexMistake,
+    InvalidReplacePatternMistake,
     Mistake,
 )  # type: ignore
 
@@ -86,38 +87,49 @@ class MainModel(GObject.Object):
         # Set the app state
         self.app_state = AppState.RENAMING if self.picked_paths else AppState.EMPTY
 
-        try:
-            # Validate the regex
-            pattern = re.compile(pattern=self.regex)
-        except Exception:
-            self.mistakes = [InvalidRegexMistake()]
-            self.is_apply_enabled = False
-        else:
-            # Rename the paths
-            self.renamed_paths = (
-                list(self.picked_paths)
-                if (not self.regex or not self.replace_pattern)
-                else [
+        mistakes: list[Mistake] = []
+
+        # Parse the regex
+        regex: Pattern | None = None
+        if self.regex:
+            try:
+                regex = re.compile(pattern=self.regex)
+            except re.error:
+                mistakes.append(InvalidRegexMistake())
+
+        # Rename the paths if plausible
+        if regex and self.replace_pattern:
+            try:
+                self.renamed_paths = [
                     self._rename(
-                        regex=pattern,
+                        regex=regex,
                         path=path,
                         replace_pattern=self.replace_pattern,
                         target=self.rename_target,
                     )
                     for path in self.picked_paths
                 ]
-            )
-            self.mistakes = self._detect_renamed_paths_mistakes(
-                renamed_paths=self.renamed_paths,
-                picked_paths=self.picked_paths,
-            )
-            self.is_apply_enabled = (
-                self.regex
-                and self.replace_pattern
-                and self.picked_paths
-                and self.picked_paths != self.renamed_paths
-                and not self.mistakes
-            )
+            except re.error:
+                mistakes.append(InvalidReplacePatternMistake())
+            else:
+                mistakes.extend(
+                    self._detect_renamed_paths_mistakes(
+                        renamed_paths=self.renamed_paths,
+                        picked_paths=self.picked_paths,
+                    )
+                )
+        else:
+            # Do a noop to display something in the renamed paths
+            self.renamed_paths = self.picked_paths.copy()
+
+        self.mistakes = mistakes
+        self.is_apply_enabled = (
+            self.regex
+            and self.replace_pattern
+            and self.picked_paths
+            and self.picked_paths != self.renamed_paths
+            and not self.mistakes
+        )
 
     def _rename(
         self, regex: Pattern, path: str, replace_pattern: str, target: RenameTarget

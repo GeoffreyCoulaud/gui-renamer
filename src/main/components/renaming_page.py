@@ -1,12 +1,18 @@
+from collections.abc import Callable
 from pathlib import Path
 
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
 from main.components.pair_of_strings import PairOfStrings
-from main.components.path_list_item_builder import PathPairLifeCycleManager
+from main.components.rename_item_life_cycle_manager import RenameItemLifeCycleManager
 from main.enums.action_names import ActionNames
 from main.enums.rename_target import RenameTarget
-from main.models.mistakes import InvalidRegexMistake, Mistake, RenameDestinationMistake
+from main.models.mistakes import (
+    InvalidRegexMistake,
+    InvalidReplacePatternMistake,
+    Mistake,
+    RenameDestinationMistake,
+)
 from main.widget_builder.widget_builder import (
     Children,
     Handlers,
@@ -80,7 +86,7 @@ class RenamingPage(Adw.NavigationPage):
             self.__regex_editable.remove_css_class(ERROR_CSS_CLASS)
 
         # Update the replace pattern editable
-        if any(isinstance(m, RenameDestinationMistake) for m in mistakes):
+        if any(isinstance(m, InvalidReplacePatternMistake) for m in mistakes):
             self.__replace_pattern_editable.add_css_class(ERROR_CSS_CLASS)
         else:
             self.__replace_pattern_editable.remove_css_class(ERROR_CSS_CLASS)
@@ -89,13 +95,15 @@ class RenamingPage(Adw.NavigationPage):
         self.__info_banner.set_revealed(bool(mistakes))
         if mistakes:
             self.__info_banner.set_title(mistakes[0].message)
+            self.__info_banner.set_button_label(mistakes[0].fix_action)
 
     # ---
 
+    __items_list_view: Gtk.ListView
     __items_model: Gio.ListStore
     __items_selection_model: Gtk.SelectionModel
     __items_signal_factory: Gtk.SignalListItemFactory
-    __items_lifecycle_manager: PathPairLifeCycleManager
+    __items_lifecycle_manager: RenameItemLifeCycleManager
 
     __regex_editable: Adw.EntryRow
     __replace_pattern_editable: Adw.EntryRow
@@ -197,25 +205,26 @@ class RenamingPage(Adw.NavigationPage):
         )
 
         # Paths view definition
-        list_view = build(
+        self.__items_list_view = build(
+            Gtk.ListView
+            + Properties(
+                css_classes=["card"],
+                model=self.__items_selection_model,
+                factory=self.__items_signal_factory,
+                margin_top=margin / 2,
+                margin_bottom=margin,
+                margin_start=margin,
+                margin_end=margin,
+            )
+        )
+        items_view = build(
             Gtk.ScrolledWindow
             + Properties(
                 vexpand=True,
                 hscrollbar_policy=Gtk.PolicyType.NEVER,
                 vscrollbar_policy=Gtk.PolicyType.AUTOMATIC,
             )
-            + Children(
-                Gtk.ListView
-                + Properties(
-                    css_classes=["card"],
-                    model=self.__items_selection_model,
-                    factory=self.__items_signal_factory,
-                    margin_top=margin / 2,
-                    margin_bottom=margin,
-                    margin_start=margin,
-                    margin_end=margin,
-                )
-            )
+            + Children(self.__items_list_view)
         )
 
         content = build(
@@ -225,7 +234,7 @@ class RenamingPage(Adw.NavigationPage):
                 "content",
                 Gtk.Box
                 + Properties(orientation=Gtk.Orientation.VERTICAL)
-                + Children(self.__info_banner, regex_section, list_view),
+                + Children(self.__info_banner, regex_section, items_view),
             )
         )
 
@@ -238,9 +247,9 @@ class RenamingPage(Adw.NavigationPage):
     def __init__(self):
         super().__init__()
         self.__items_model = Gio.ListStore.new(item_type=PairOfStrings)
-        self.__items_selection_model = Gtk.SingleSelection.new(model=self.__items_model)
+        self.__items_selection_model = Gtk.NoSelection.new(model=self.__items_model)
         self.__items_signal_factory = Gtk.SignalListItemFactory()
-        self.__items_lifecycle_manager = PathPairLifeCycleManager()
+        self.__items_lifecycle_manager = RenameItemLifeCycleManager()
         self.__items_lifecycle_manager.attach_to(self.__items_signal_factory)
         self.__build()
 
@@ -263,11 +272,14 @@ class RenamingPage(Adw.NavigationPage):
             case InvalidRegexMistake():
                 # Regex mistake, focus the regex editable.
                 self.__regex_editable.grab_focus()
-            case RenameDestinationMistake():
-                # Destination mistake, select the item and focus the editable.
+            case InvalidReplacePatternMistake():
+                # Replace pattern mistake, focus the replace pattern editable.
                 self.__replace_pattern_editable.grab_focus()
-                self.__items_selection_model.select_item(
-                    position=first.culprit_index, unselect_rest=True
+            case RenameDestinationMistake():
+                # Destination mistake, focus the item
+                # FIXME - The focus doesn't work, it seems to be a bug in Gtk.
+                self.__items_list_view.scroll_to(
+                    first.culprit_index, flags=Gtk.ListScrollFlags.FOCUS
                 )
             case _:
                 # For other mistakes, just log the message.
@@ -284,7 +296,7 @@ class RenamingPage(Adw.NavigationPage):
         ):
             return
 
-        transform: callable[[str], str]
+        transform: Callable[[str], str]
         match self.rename_target:
             case RenameTarget.FULL:
                 transform = lambda path: path  # noqa: E731

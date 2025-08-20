@@ -4,12 +4,15 @@ from main.components.pair_of_strings import PairOfStrings
 from main.widget_builder.widget_builder import Children, Properties, build
 
 
-class PathPairLifeCycleManager:
+class RenameItemLifeCycleManager:
     """Class in charge of managing ListItem lifecycle for path widgets"""
 
     def attach_to(self, signal_factory: Gtk.SignalListItemFactory):
         """Attach the builder to the factory's signals"""
         signal_factory.connect("bind", self.__on_bind)
+
+    # TODO create a custom widget, set it up properly instead of doing it at binding time
+    # This would yeild better performance, UI and code.
 
     def __on_bind(self, factory: Gtk.SignalListItemFactory, item: Gtk.ListItem):
         pair: PairOfStrings = item.get_item()  # type: ignore
@@ -23,6 +26,8 @@ class PathPairLifeCycleManager:
             margin_top=margin if pair.is_first else margin / 2,
             margin_bottom=margin if pair.is_last else margin / 2,
         )
+
+        # TODO add error class if there is an error on this item
 
         # TODO add custom CSS to the widget to alternate background colors
         # (As tables do to ease reading)

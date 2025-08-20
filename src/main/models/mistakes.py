@@ -10,16 +10,31 @@ class Mistake(ABC):
     """
 
     message: str
+    fix_action: str
 
-    def __init__(self, message: str):
+    def __init__(self, message: str, fix_action: str):
         self.message = message
+        self.fix_action = fix_action
 
 
 class InvalidRegexMistake(Mistake):
     """Mistake raised when the user provides an invalid regex"""
 
     def __init__(self):
-        super().__init__(message="Provided regex is invalid")
+        super().__init__(
+            message="Provided regex is invalid",
+            fix_action="Edit",
+        )
+
+
+class InvalidReplacePatternMistake(Mistake):
+    """Mistake raised when the user provides an invalid replace pattern"""
+
+    def __init__(self):
+        super().__init__(
+            message="Provided replace pattern is invalid",
+            fix_action="Edit",
+        )
 
 
 class RenameDestinationMistake(Mistake, ABC):
@@ -27,8 +42,8 @@ class RenameDestinationMistake(Mistake, ABC):
 
     culprit_index: int
 
-    def __init__(self, message: int, culprit_index: int):
-        super().__init__(message=message)
+    def __init__(self, message: str, culprit_index: int):
+        super().__init__(message=message, fix_action="View")
         self.culprit_index = culprit_index
 
 
