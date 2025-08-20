@@ -12,10 +12,11 @@ class PathPairLifeCycleManager:
         signal_factory.connect("bind", self.__on_bind)
 
     def __on_bind(self, factory: Gtk.SignalListItemFactory, item: Gtk.ListItem):
-        pair: PairOfStrings = item.get_item()
+        pair: PairOfStrings = item.get_item()  # type: ignore
         margin = 12
         label_props = Properties(
             wrap=True,
+            wrap_mode=Pango.WrapMode.WORD_CHAR,
             xalign=0.0,
             hexpand=True,
             ellipsize=Pango.EllipsizeMode.NONE,
