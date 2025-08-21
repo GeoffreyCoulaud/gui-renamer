@@ -36,6 +36,9 @@ class RenameItemData(GObject.GObject):
 class RenameItemWidget(Gtk.Box):
     """Rename item widget"""
 
+    # TODO - Use a constraint layout and make it a custom widget
+    # Allows homogeneous paths with a separator between them (box cannot do that)
+
     MARGIN: int = 12
 
     # --- Inbound properties
@@ -142,6 +145,8 @@ class RenameItemWidget(Gtk.Box):
         bottom_margin = int(self.MARGIN / (1 if is_last else 2))
         self.__picked_label.set_margin_bottom(bottom_margin)
         self.__renamed_label.set_margin_bottom(bottom_margin)
+
+        # TODO set a class to alternate the background color for lisibility
 
     def __init__(self) -> None:
         super().__init__()

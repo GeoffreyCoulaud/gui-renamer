@@ -213,6 +213,8 @@ class MainModel(GObject.Object):
             for (picked, renamed) in zip(self.picked_paths, self.renamed_paths)
             if picked != renamed
         ):
+            # TODO - Handle errors during renaming
+            # Renaming should be atomic, so if one fails, none should be applied
             Path(picked).rename(renamed)
         self.app_state = AppState.RENAMED
         self.is_undo_enabled = True
@@ -224,6 +226,8 @@ class MainModel(GObject.Object):
             for (picked, renamed) in zip(self.picked_paths, self.renamed_paths)
             if picked != renamed
         ):
+            # TODO - Handle errors during undo renaming
+            # Renaming should be atomic, so if one fails, none should be applied
             Path(renamed).rename(picked)
         self.app_state = AppState.RENAMING
         self.is_undo_enabled = False
