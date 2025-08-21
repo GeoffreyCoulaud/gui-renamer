@@ -186,6 +186,10 @@ class MainModel(GObject.Object):
         ):
             # Check for duplicates
             if renamed_path in buckets:
+                # If first duplicate, also add a mistake for the first occurrence
+                if len(buckets[renamed_path]) == 1:
+                    mistakes.append(DuplicateMistake(buckets[renamed_path][0]))
+                # Add a mistake for the current duplicate
                 mistakes.append(DuplicateMistake(i))
             buckets[renamed_path].append(i)
 
