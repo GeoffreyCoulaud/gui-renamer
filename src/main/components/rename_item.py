@@ -162,7 +162,6 @@ class RenameItemLifeCycleManager:
         widget: RenameItemWidget = item.get_child()  # type: ignore
         data: RenameItemData = item.get_item()  # type: ignore
 
-        # FIXME - This is not pretty, maybe attach data directly to the widget?
         widget.picked_path = data.picked_path
         widget.renamed_path = data.renamed_path
         widget.index = data.index

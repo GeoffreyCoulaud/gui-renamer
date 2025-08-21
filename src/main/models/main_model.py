@@ -208,18 +208,22 @@ class MainModel(GObject.Object):
 
     def apply_renaming(self) -> None:
         """Apply the renaming to the picked paths"""
-
-        print("PLACEHOLDER - Should rename")
-        # TODO implement the actual renaming logic
-
+        for picked, renamed in (
+            (picked, renamed)
+            for (picked, renamed) in zip(self.picked_paths, self.renamed_paths)
+            if picked != renamed
+        ):
+            Path(picked).rename(renamed)
         self.app_state = AppState.RENAMED
         self.is_undo_enabled = True
 
     def undo_renaming(self) -> None:
         """Undo the rename operation."""
-
-        print("PLACEHOLDER - Should undo renaming")
-        # TODO implement the actual undo logic
-
+        for picked, renamed in (
+            (picked, renamed)
+            for (picked, renamed) in zip(self.picked_paths, self.renamed_paths)
+            if picked != renamed
+        ):
+            Path(renamed).rename(picked)
         self.app_state = AppState.RENAMING
         self.is_undo_enabled = False
