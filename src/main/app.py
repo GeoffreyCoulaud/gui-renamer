@@ -138,7 +138,10 @@ class App(Adw.Application):
                 source=self.__model,
                 source_property="picked-paths",
                 target_property="picked-paths",
-                flags=GObject.BindingFlags.SYNC_CREATE,
+                flags=(
+                    GObject.BindingFlags.SYNC_CREATE
+                    | GObject.BindingFlags.BIDIRECTIONAL
+                ),
             )
             + InboundProperty(
                 source=self.__model,
@@ -188,7 +191,7 @@ class App(Adw.Application):
             return
 
         paths = [
-            cast(Gio.File | None, paths_list_model.get_item(i).get_path())
+            cast(Gio.File | None, paths_list_model.get_item(i).get_path())  # type: ignore
             for i in range(paths_list_model.get_n_items())
         ]
         self.__model.picked_paths = [path for path in paths if path is not None]

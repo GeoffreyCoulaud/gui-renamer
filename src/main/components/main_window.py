@@ -1,4 +1,4 @@
-from gi.repository import Adw, GObject  # type: ignore
+from gi.repository import Adw, GObject, Gtk, Gdk  # type: ignore
 
 from main.components.empty_page import EmptyPage
 from main.components.renamed_page import RenamedPage
@@ -30,10 +30,14 @@ class MainWindow(Adw.ApplicationWindow):
         self.__app_state = state
         self.__update_navigation()
 
-    picked_paths: list[str] = GObject.Property(type=object)  # type: ignore
     renamed_paths: list[str] = GObject.Property(type=object)  # type: ignore
     mistakes: list[Mistake] = GObject.Property(type=object)  # type: ignore
     rename_target: str = GObject.Property(type=str)  # type: ignore
+
+    # --- Bidirectional properties
+
+    # Can be set from the file picker (inbound) or drag and drop (outbound)
+    picked_paths: list[str] = GObject.Property(type=object)  # type: ignore
 
     # ---
 
@@ -42,6 +46,7 @@ class MainWindow(Adw.ApplicationWindow):
     def __init__(self, application: Adw.Application):
         super().__init__(application=application)
         self.__build()
+        self.__setup_drop_target()
 
     def __build(self) -> None:
         empty_page = build(EmptyPage)
@@ -79,6 +84,12 @@ class MainWindow(Adw.ApplicationWindow):
         self.set_content(self.__navigation)
         self.set_default_size(800, 600)
 
+    def __setup_drop_target(self) -> None:
+        """Setup drop target to accept file drops"""
+        drop_target = Gtk.DropTarget.new(type=Gdk.FileList, actions=Gdk.DragAction.COPY)
+        drop_target.connect("drop", self.__on_files_dropped)
+        self.add_controller(drop_target)
+
     def __update_navigation(self) -> None:
         """Update the navgation view based on the current app state"""
 
@@ -97,3 +108,20 @@ class MainWindow(Adw.ApplicationWindow):
         # Going to the renamed page (always on top)
         if self.app_state == AppState.RENAMED and visible_tag != RenamedPage.TAG:
             self.__navigation.push_by_tag(RenamedPage.TAG)
+
+    def __on_files_dropped(
+        self,
+        _drop_target: Gtk.DropTarget,
+        dropped: Gdk.FileList,
+        _x: float,
+        _y: float,
+    ) -> None:
+        """Handle dropped text"""
+        paths = [
+            path
+            for file in dropped.get_files()
+            if (path := file.get_path()) is not None
+        ]
+        if not paths:
+            return
+        self.picked_paths = paths
