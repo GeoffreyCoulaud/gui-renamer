@@ -6,8 +6,8 @@ from re import Pattern
 from gi.repository import GObject  # type: ignore
 from pathvalidate import ValidationError, validate_filepath
 
-from main.enums.app_state import AppState
-from main.enums.rename_target import RenameTarget
+from main.models.app_state import AppState
+from main.models.rename_target import RenameTarget
 from main.models.mistakes import (
     DuplicateMistake,
     ExistsMistake,

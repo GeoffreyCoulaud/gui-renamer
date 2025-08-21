@@ -3,7 +3,7 @@ from gi.repository import Adw, GObject  # type: ignore
 from main.components.empty_page import EmptyPage
 from main.components.renamed_page import RenamedPage
 from main.components.renaming_page import RenamingPage
-from main.enums.app_state import AppState
+from main.models.app_state import AppState
 from main.models.mistakes import Mistake
 from main.widget_builder.widget_builder import (
     Children,
@@ -30,10 +30,10 @@ class MainWindow(Adw.ApplicationWindow):
         self.__app_state = state
         self.__update_navigation()
 
-    picked_paths: list[str] = GObject.Property(type=object)
-    renamed_paths: list[str] = GObject.Property(type=object)
-    mistakes: list[Mistake] = GObject.Property(type=object)
-    rename_target: str = GObject.Property(type=str)
+    picked_paths: list[str] = GObject.Property(type=object)  # type: ignore
+    renamed_paths: list[str] = GObject.Property(type=object)  # type: ignore
+    mistakes: list[Mistake] = GObject.Property(type=object)  # type: ignore
+    rename_target: str = GObject.Property(type=str)  # type: ignore
 
     # ---
 
@@ -83,7 +83,7 @@ class MainWindow(Adw.ApplicationWindow):
         """Update the navgation view based on the current app state"""
 
         # Empty page (always on the bottom)
-        visible_tag = self.__navigation.get_visible_page_tag()
+        visible_tag = self.__navigation.get_visible_page_tag()  # type: ignore
         if self.app_state == AppState.EMPTY and visible_tag != EmptyPage.TAG:
             self.__navigation.pop_to_tag(EmptyPage.TAG)
 

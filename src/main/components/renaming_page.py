@@ -7,8 +7,8 @@ from main.components.rename_item import (
     RenameItemData,
     RenameItemLifeCycleManager,
 )
-from main.enums.action_names import ActionNames
-from main.enums.rename_target import RenameTarget
+from main.models.action_names import ActionNames
+from main.models.rename_target import RenameTarget
 from main.models.mistakes import (
     InvalidRegexMistake,
     InvalidReplacePatternMistake,

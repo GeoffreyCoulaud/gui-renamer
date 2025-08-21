@@ -1,6 +1,6 @@
 from gi.repository import Adw, Gtk  # type: ignore
 
-from main.enums.action_names import ActionNames
+from main.models.action_names import ActionNames
 from main.widget_builder.widget_builder import (
     Children,
     Properties,
