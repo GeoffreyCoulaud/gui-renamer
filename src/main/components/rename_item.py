@@ -100,6 +100,7 @@ class RenameItemWidget(Gtk.Box):
                 margin_start=self.MARGIN,
                 margin_end=self.MARGIN / 2,
                 valign=Gtk.Align.START,
+                selectable=True,
             )
             + InboundProperty(
                 source=self,
