@@ -287,7 +287,7 @@ class RenamingPage(Adw.NavigationPage):
                 self.__replace_pattern_editable.grab_focus()
             case RenameDestinationMistake():
                 # Destination mistake, focus the item
-                # FIXME - The focus doesn't work, it seems to be a bug in Gtk.
+                self.__items_list_view.grab_focus()
                 self.__items_list_view.scroll_to(
                     first.culprit_index, flags=Gtk.ListScrollFlags.FOCUS
                 )
