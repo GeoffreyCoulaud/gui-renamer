@@ -3,8 +3,10 @@ from pathlib import Path
 
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
-from main.components.pair_of_strings import PairOfStrings
-from main.components.rename_item_life_cycle_manager import RenameItemLifeCycleManager
+from main.components.rename_item import (
+    RenameItemData,
+    RenameItemLifeCycleManager,
+)
 from main.enums.action_names import ActionNames
 from main.enums.rename_target import RenameTarget
 from main.models.mistakes import (
@@ -63,6 +65,7 @@ class RenamingPage(Adw.NavigationPage):
         self.__update_items_model()
 
     __mistakes: list[Mistake]
+    __indexed_rename_destination_mistakes: dict[int, RenameDestinationMistake]
 
     @GObject.Property(type=object)
     def mistakes(self):
@@ -96,6 +99,13 @@ class RenamingPage(Adw.NavigationPage):
         if mistakes:
             self.__info_banner.set_title(mistakes[0].message)
             self.__info_banner.set_button_label(mistakes[0].fix_action)
+
+        # Update the indexed mistakes
+        self.__indexed_rename_destination_mistakes = {
+            m.culprit_index: m
+            for m in mistakes
+            if isinstance(m, RenameDestinationMistake)
+        }
 
     # ---
 
@@ -246,7 +256,7 @@ class RenamingPage(Adw.NavigationPage):
 
     def __init__(self):
         super().__init__()
-        self.__items_model = Gio.ListStore.new(item_type=PairOfStrings)
+        self.__items_model = Gio.ListStore.new(item_type=RenameItemData)
         self.__items_selection_model = Gtk.NoSelection.new(model=self.__items_model)
         self.__items_signal_factory = Gtk.SignalListItemFactory()
         self.__items_lifecycle_manager = RenameItemLifeCycleManager()
@@ -311,9 +321,11 @@ class RenamingPage(Adw.NavigationPage):
         for i, (picked, renamed) in enumerate(
             zip(self.__picked_paths, self.__renamed_paths)
         ):
-            display_pair = PairOfStrings()
-            display_pair.first = transform(picked)
-            display_pair.second = transform(renamed)
-            display_pair.is_first = i == 0
-            display_pair.is_last = i == len(self.__picked_paths) - 1
-            self.__items_model.append(display_pair)
+            rename_item_data = RenameItemData(
+                picked_path=transform(picked),
+                renamed_path=transform(renamed),
+                index=i,
+                count=len(self.__picked_paths),
+                mistake=self.__indexed_rename_destination_mistakes.get(i),
+            )
+            self.__items_model.append(rename_item_data)
