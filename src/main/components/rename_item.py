@@ -36,9 +36,6 @@ class RenameItemData(GObject.GObject):
 class RenameItemWidget(Gtk.Box):
     """Rename item widget"""
 
-    # TODO - Use a constraint layout and make it a custom widget
-    # Allows homogeneous paths with a separator between them (box cannot do that)
-
     MARGIN: int = 12
 
     # --- Inbound properties
@@ -86,6 +83,7 @@ class RenameItemWidget(Gtk.Box):
 
     __picked_label: Gtk.Label
     __renamed_label: Gtk.Label
+    __separator: Gtk.Label
 
     def __build(self) -> None:
         label_props = Properties(
@@ -127,9 +125,21 @@ class RenameItemWidget(Gtk.Box):
             )
         )
 
+        self.__separator = build(
+            Gtk.Label
+            + Properties(
+                label="→",
+                margin_start=6,
+                margin_end=6,
+                valign=Gtk.Align.START,
+                hexpand=False,
+            )
+        )
+
         self.append(self.__picked_label)
+        self.append(self.__separator)
         self.append(self.__renamed_label)
-        self.set_homogeneous(True)
+
         if self.__mistake:
             self.add_css_class("error")
 
@@ -140,16 +150,19 @@ class RenameItemWidget(Gtk.Box):
         top_margin = int(self.MARGIN / (1 if is_first else 2))
         self.__picked_label.set_margin_top(top_margin)
         self.__renamed_label.set_margin_top(top_margin)
+        self.__separator.set_margin_top(top_margin)
 
         is_last = self.index == (self.count - 1)
         bottom_margin = int(self.MARGIN / (1 if is_last else 2))
         self.__picked_label.set_margin_bottom(bottom_margin)
         self.__renamed_label.set_margin_bottom(bottom_margin)
+        self.__separator.set_margin_bottom(bottom_margin)
 
         # TODO set a class to alternate the background color for lisibility
 
     def __init__(self) -> None:
         super().__init__()
+        self.set_css_name("rename-item")
         self.__build()
 
 
