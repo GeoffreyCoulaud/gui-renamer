@@ -2,6 +2,7 @@ from gi.repository import GObject, Gtk, Pango  # type: ignore
 
 from main.types.mistakes import RenameDestinationMistake
 from main.ui.widget_builder.widget_builder import (
+    Children,
     InboundProperty,
     Properties,
     build,
@@ -33,7 +34,7 @@ class RenameItemData(GObject.GObject):
         self.mistake = mistake
 
 
-class RenameItemWidget(Gtk.Box):
+class RenameItemWidget(Gtk.CenterBox):
     """Rename item widget"""
 
     MARGIN: int = 12
@@ -85,6 +86,16 @@ class RenameItemWidget(Gtk.Box):
     __renamed_label: Gtk.Label
     __separator: Gtk.Label
 
+    def __wrap_label_for_sizing(self, widget: Gtk.Widget) -> Gtk.Widget:
+        return build(
+            Gtk.ScrolledWindow
+            + Properties(
+                hscrollbar_policy=Gtk.PolicyType.NEVER,
+                vscrollbar_policy=Gtk.PolicyType.NEVER,
+            )
+            + Children(widget)
+        )
+
     def __build(self) -> None:
         label_props = Properties(
             wrap=True,
@@ -129,16 +140,16 @@ class RenameItemWidget(Gtk.Box):
             Gtk.Label
             + Properties(
                 label="→",
-                margin_start=6,
-                margin_end=6,
+                margin_start=self.MARGIN / 2,
+                margin_end=self.MARGIN / 2,
                 valign=Gtk.Align.START,
                 hexpand=False,
             )
         )
 
-        self.append(self.__picked_label)
-        self.append(self.__separator)
-        self.append(self.__renamed_label)
+        self.set_start_widget(self.__wrap_label_for_sizing(self.__picked_label))
+        self.set_center_widget(self.__separator)
+        self.set_end_widget(self.__wrap_label_for_sizing(self.__renamed_label))
 
         if self.__mistake:
             self.add_css_class("error")
