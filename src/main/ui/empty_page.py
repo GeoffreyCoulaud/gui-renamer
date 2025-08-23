@@ -1,7 +1,7 @@
 from gi.repository import Adw, Gtk  # type: ignore
 
 from main.models.action_names import ActionNames
-from main.widget_builder.widget_builder import (
+from main.ui.widget_builder.widget_builder import (
     Children,
     Properties,
     TypedChild,

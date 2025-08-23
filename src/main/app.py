@@ -9,10 +9,10 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
-from main.components.main_window import MainWindow
+from main.ui.main_window import MainWindow
 from main.models.action_names import ActionNames
 from main.main_model import MainModel
-from main.widget_builder.widget_builder import (  # type: ignore
+from main.ui.widget_builder.widget_builder import (  # type: ignore
     Arguments,
     InboundProperty,
     build,

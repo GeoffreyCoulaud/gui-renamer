@@ -1,11 +1,11 @@
 from gi.repository import Adw, GObject, Gtk, Gdk  # type: ignore
 
-from main.components.empty_page import EmptyPage
-from main.components.renamed_page import RenamedPage
-from main.components.renaming_page import RenamingPage
+from main.ui.empty_page import EmptyPage
+from main.ui.renamed_page import RenamedPage
+from main.ui.renaming_page import RenamingPage
 from main.models.app_state import AppState
 from main.models.mistakes import Mistake
-from main.widget_builder.widget_builder import (
+from main.ui.widget_builder.widget_builder import (
     Children,
     InboundProperty,
     build,

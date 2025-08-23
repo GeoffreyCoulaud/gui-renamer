@@ -2,6 +2,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 from re import Pattern
+import unicodedata
 
 from gi.repository import GObject  # type: ignore
 from pathvalidate import ValidationError, validate_filepath
@@ -31,7 +32,7 @@ class MainModel(GObject.Object):
 
     @picked_paths.setter
     def picked_paths_setter(self, value: list[str]) -> None:
-        self.__picked_paths = value
+        self.__picked_paths = [self._normalize_utf8(s) for s in value]
         self.recompute()
 
     __regex: str = ""
@@ -42,7 +43,7 @@ class MainModel(GObject.Object):
 
     @regex.setter
     def regex_setter(self, value: str) -> None:
-        self.__regex = value
+        self.__regex = self._normalize_utf8(value)
         self.recompute()
 
     __replace_pattern: str = ""
@@ -53,7 +54,7 @@ class MainModel(GObject.Object):
 
     @replace_pattern.setter
     def replace_pattern_setter(self, value: str) -> None:
-        self.__replace_pattern = value
+        self.__replace_pattern = self._normalize_utf8(value)
         self.recompute()
 
     __rename_target: RenameTarget = RenameTarget.NAME
@@ -80,6 +81,19 @@ class MainModel(GObject.Object):
     def __init__(self):
         super().__init__()
         self.__picked_paths = []
+
+    def _normalize_utf8(self, string: str) -> str:
+        """
+        Normalize a string to a consistent UTF-8 form.<br/>
+        We chose NFC as for regex operations it avoids some pitfalls with combining characters.
+
+        E.g when writing "é" as "e+'" (NFD), the regex "é{3}" would mean "e'''", which is unintuitive.
+        Users would expect "é{3}" to match "ééé", which is NFC.
+
+        - On some platforms (ex. MacOS) UTF-8 paths use the NFD normalization form, but text inputs use NFC.
+        - On others (ex. Linux) they use NFC everywhere.
+        """
+        return unicodedata.normalize("NFC", string)
 
     def recompute(self) -> None:
         """Recompute the outbound properties based on the inbound properties"""

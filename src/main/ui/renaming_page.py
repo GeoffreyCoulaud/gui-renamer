@@ -3,7 +3,7 @@ from pathlib import Path
 
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
-from main.components.rename_item import (
+from main.ui.rename_item import (
     RenameItemData,
     RenameItemLifeCycleManager,
 )
@@ -15,7 +15,7 @@ from main.models.mistakes import (
     Mistake,
     RenameDestinationMistake,
 )
-from main.widget_builder.widget_builder import (
+from main.ui.widget_builder.widget_builder import (
     Children,
     Handlers,
     Properties,

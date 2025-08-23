@@ -1,7 +1,7 @@
 from gi.repository import GObject, Gtk, Pango  # type: ignore
 
 from main.models.mistakes import RenameDestinationMistake
-from main.widget_builder.widget_builder import (
+from main.ui.widget_builder.widget_builder import (
     InboundProperty,
     Properties,
     build,
