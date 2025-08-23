@@ -7,9 +7,9 @@ from main.ui.rename_item import (
     RenameItemData,
     RenameItemLifeCycleManager,
 )
-from main.models.action_names import ActionNames
-from main.models.rename_target import RenameTarget
-from main.models.mistakes import (
+from main.types.action_names import ActionNames
+from main.types.rename_target import RenameTarget
+from main.types.mistakes import (
     InvalidRegexMistake,
     InvalidReplacePatternMistake,
     Mistake,
