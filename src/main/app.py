@@ -40,7 +40,7 @@ class App(Adw.Application):
 
     def __init__(self) -> None:
         super().__init__(
-            application_id="fr.geoffrey-coulaud.gui-renamer",
+            application_id="fr.geoffrey-coulaud.PatternRenamer",
             flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
         )
         self.__files_picker = Gtk.FileDialog(
