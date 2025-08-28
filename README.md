@@ -43,6 +43,12 @@ A simple GUI file renamer using regexes built with python, GTK and LibAdwaita.
    pattern-renamer
    ```
 
+## Regenerating the potfiles
+
+```sh
+meson compile -C build pattern-renamer-pot
+```
+
 ## Updating the flatpak python requirements
 
 1. Install the `flatpak-pip-generator` from the [flatpak buider tools repo](https://github.com/flatpak/flatpak-builder-tools)

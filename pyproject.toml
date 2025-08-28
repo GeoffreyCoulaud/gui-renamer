@@ -9,9 +9,6 @@ dependencies = [
     "pygobject>=3.52.3",
 ]
 
-[project.scripts]
-gui-renamer = "pattern_renamer.main.app:main"
-
 [dependency-groups]
 dev = [
     "pre-commit>=4.2.0",
@@ -22,3 +19,9 @@ dev = [
 
 [tool.uv]
 package = true
+
+[tool.ruff]
+builtins = [
+    "_" # Ignore gettext _() usage
+]
+

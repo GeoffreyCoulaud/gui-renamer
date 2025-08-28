@@ -13,7 +13,12 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
-from pattern_renamer.main.build_constants import PKG_DATA_DIR, LOCALE_DIR, APP_SLUG  # type: ignore
+from pattern_renamer.main.build_constants import (
+    PKG_DATA_DIR,
+    LOCALE_DIR,
+    APP_SLUG,
+    APP_ID,
+)  # type: ignore
 from pattern_renamer.main.ui.main_window import MainWindow
 from pattern_renamer.main.types.action_names import ActionNames
 from pattern_renamer.main.main_model import MainModel
@@ -45,11 +50,11 @@ class App(Adw.Application):
 
     def __init__(self) -> None:
         super().__init__(
-            application_id="com.github.geoffreycoulaud.PatternRenamer",
+            application_id=APP_ID,
             flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
         )
         self.__files_picker = Gtk.FileDialog(
-            title="Select files to rename",
+            title=_("Select files to rename"),
             modal=True,
         )
         self.__model = MainModel()
@@ -178,7 +183,7 @@ class App(Adw.Application):
     def __on_files_picker_requested(self, *_args):
         """Make the user select files to rename."""
         self.__files_picker.open_multiple(
-            parent=self.__window.get_root(),
+            parent=cast(Gtk.Window, self.__window.get_root()),
             callback=self.__on_files_picked,
         )
 
@@ -211,7 +216,7 @@ def main():
     gettext.install(APP_SLUG, LOCALE_DIR)
 
     resource = Gio.Resource.load(os.path.join(PKG_DATA_DIR, f"{APP_SLUG}.gresource"))
-    resource._register()
+    resource._register()  #  type: ignore
 
     app = App()
     return app.run(sys.argv)

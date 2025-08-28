@@ -1,0 +1,15 @@
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+
+data/desktop.in
+data/gschema.xml.in
+data/metainfo.xml.in
+
+src/pattern_renamer/main/app.py
+src/pattern_renamer/main/main_model.py
+src/pattern_renamer/main/types/mistakes.py
+src/pattern_renamer/main/ui/empty_page.py
+src/pattern_renamer/main/ui/main_window.py
+src/pattern_renamer/main/ui/rename_item.py
+src/pattern_renamer/main/ui/renamed_page.py
+src/pattern_renamer/main/ui/renaming_page.py
