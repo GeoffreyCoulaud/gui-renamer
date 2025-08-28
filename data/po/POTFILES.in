@@ -1,9 +1,9 @@
 # List of source files containing translatable strings.
 # Please keep this file sorted alphabetically.
 
-data/com.github.geoffreycoulaud.PatternRenamer.desktop.in
-data/com.github.geoffreycoulaud.PatternRenamer.metainfo.xml.in
-data/com.github.geoffreycoulaud.PatternRenamer.gschema.xml
+data/desktop.in
+data/metainfo.xml.in
+data/gschema.xml.in
 
 src/main/app.py
 src/main/main_model.py

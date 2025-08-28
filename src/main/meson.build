@@ -13,12 +13,13 @@ install_data(
       input: 'build_constants.py.in',
       output: 'build_constants.py',
       configuration: conf,
-    )
+    ),
     '__init__.py',
     'app.py',
     'main_model.py',
   ],
   install_dir: moduledir,
 )
+install_subdir('styles', install_dir: moduledir)
 install_subdir('types', install_dir: moduledir)
 install_subdir('ui', install_dir: moduledir)

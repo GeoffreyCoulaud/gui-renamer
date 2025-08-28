@@ -8,7 +8,7 @@ project(
 )
 
 dependency('gtk4', version: '>= 4.15.0')
-dependency('libadwaita-1', version: '>= 1.7.6')
+dependency('libadwaita-1', version: '>= 1.7.5')
 
 i18n = import('i18n')
 gnome = import('gnome')
@@ -31,16 +31,17 @@ app_slug = 'pattern-renamer'
 app_name = 'Pattern Renamer'
 
 conf = configuration_data()
+conf.set('VERSION', meson.project_version())
 conf.set('PYTHON', py_installation.full_path())
 conf.set('PYTHON_VERSION', py_installation.language_version())
+conf.set('LOCALEDIR', get_option('prefix') / get_option('localedir'))
+conf.set('BINDIR', get_option('prefix') / get_option('bindir'))
 conf.set('APP_EXECUTABLE_NAME', app_executable_name)
 conf.set('APP_SLUG', app_slug)
 conf.set('APP_NAME', app_name)
 conf.set('APP_ID', app_id)
 conf.set('PREFIX', prefix)
-conf.set('VERSION', meson.project_version())
 conf.set('PROFILE', profile)
-conf.set('LOCALEDIR', get_option('prefix') / get_option('localedir'))
 conf.set('PKGDATADIR', pkgdatadir)
 conf.set('LIBEXECDIR', libexecdir)
 

@@ -16,6 +16,7 @@ gui-renamer = "main.app:main"
 dev = [
     "pre-commit>=4.2.0",
     "pygobject-stubs>=2.13.0",
+    "requirements-parser>=0.13.0",
     "ruff>=0.12.7",
 ]
 

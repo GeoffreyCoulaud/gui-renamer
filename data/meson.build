@@ -1,6 +1,10 @@
 gnome.compile_resources(
-  'gresource.xml.in',
-  '@0@.gresource.xml'.format(app_slug),
+  app_slug,
+  configure_file(
+    input: 'gresource.xml.in',
+    output: '@0@.gresource.xml'.format(app_slug),
+    configuration: conf,
+  ),
   gresource_bundle: true,
   install: true,
   install_dir: pkgdatadir,
@@ -47,12 +51,10 @@ test(
   args: ['--strict', '--dry-run', meson.current_source_dir()],
 )
 
-service_conf = configuration_data()
-service_conf.set('bindir', get_option('prefix') / get_option('bindir'))
 configure_file(
   input: 'service.in',
   output: '@0@.service'.format(app_id),
-  configuration: service_conf,
+  configuration: conf,
   install_dir: get_option('datadir') / 'dbus-1' / 'services',
 )
 
