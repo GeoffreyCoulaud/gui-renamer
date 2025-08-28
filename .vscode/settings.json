@@ -2,7 +2,7 @@
     "files.exclude": {
         ".venv": true,
         "**/__pycache__": true,
-        "**/mypy_cache": true,
+        "**/.mypy_cache": true,
         "**/.ruff_cache": true,
         "**/__init__.py": true,
         "**/*.egg-info": true,

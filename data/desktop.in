@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=@APP_NAME@
+Exec=@EXECUTABLE_NAME@
+Icon=@APP_ID@
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=pattern;rename;regex;files;
+StartupNotify=true
+DBusActivatable=true

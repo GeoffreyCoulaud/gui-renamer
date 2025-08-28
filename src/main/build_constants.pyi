@@ -1,0 +1,7 @@
+APP_ID: str
+VERSION: str
+PREFIX: str
+PROFILE: str
+APP_SLUG: str
+PKG_DATA_DIR: str
+LOCALE_DIR: str
