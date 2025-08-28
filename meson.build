@@ -1,7 +1,7 @@
 project(
   'pattern-renamer',
   version: '1.0.0',
-  meson_version: '>= 0.59.0',
+  meson_version: '>= 1.1.0',
   default_options: [
     'werror=true',
   ],

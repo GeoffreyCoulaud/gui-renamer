@@ -14,7 +14,7 @@ desktop_file = i18n.merge_file(
   input: 'desktop.in',
   output: '@0@.desktop'.format(app_id),
   type: 'desktop',
-  po_dir: './po',
+  po_dir: 'po',
   install: true,
   install_dir: get_option('datadir') / 'applications',
 )
@@ -27,7 +27,7 @@ endif
 appstream_file = i18n.merge_file(
   input: 'metainfo.xml.in',
   output: '@0@.metainfo.xml'.format(app_id),
-  po_dir: './po',
+  po_dir: 'po',
   install: true,
   install_dir: get_option('datadir') / 'metainfo',
 )
