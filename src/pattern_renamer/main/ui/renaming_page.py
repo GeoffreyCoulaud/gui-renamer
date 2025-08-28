@@ -3,19 +3,19 @@ from pathlib import Path
 
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
-from main.ui.rename_item import (
+from pattern_renamer.main.ui.rename_item import (
     RenameItemData,
     RenameItemLifeCycleManager,
 )
-from main.types.action_names import ActionNames
-from main.types.rename_target import RenameTarget
-from main.types.mistakes import (
+from pattern_renamer.main.types.action_names import ActionNames
+from pattern_renamer.main.types.rename_target import RenameTarget
+from pattern_renamer.main.types.mistakes import (
     InvalidRegexMistake,
     InvalidReplacePatternMistake,
     Mistake,
     RenameDestinationMistake,
 )
-from main.ui.widget_builder.widget_builder import (
+from pattern_renamer.main.ui.widget_builder.widget_builder import (
     Children,
     Handlers,
     Properties,

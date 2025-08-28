@@ -1,1 +1,1 @@
-subdir('main')
+subdir('pattern_renamer')

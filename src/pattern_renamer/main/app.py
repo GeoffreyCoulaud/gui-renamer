@@ -13,11 +13,11 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
-from build_constants import PKG_DATA_DIR, LOCALE_DIR, APP_SLUG  # type: ignore
-from main.ui.main_window import MainWindow
-from main.types.action_names import ActionNames
-from main.main_model import MainModel
-from main.ui.widget_builder.widget_builder import (  # type: ignore
+from pattern_renamer.main.build_constants import PKG_DATA_DIR, LOCALE_DIR, APP_SLUG  # type: ignore
+from pattern_renamer.main.ui.main_window import MainWindow
+from pattern_renamer.main.types.action_names import ActionNames
+from pattern_renamer.main.main_model import MainModel
+from pattern_renamer.main.ui.widget_builder.widget_builder import (  # type: ignore
     Arguments,
     InboundProperty,
     build,
@@ -205,7 +205,6 @@ class App(Adw.Application):
 def main():
     """The application's entry point."""
 
-    sys.path.insert(1, PKG_DATA_DIR)
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     locale.bindtextdomain(APP_SLUG, LOCALE_DIR)
     locale.textdomain(APP_SLUG)

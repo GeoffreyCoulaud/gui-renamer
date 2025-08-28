@@ -44,6 +44,7 @@ conf.set('PREFIX', prefix)
 conf.set('PROFILE', profile)
 conf.set('PKGDATADIR', pkgdatadir)
 conf.set('LIBEXECDIR', libexecdir)
+conf.set('PYTHONDIR', python_dir)
 
 subdir('data')
 subdir('src')

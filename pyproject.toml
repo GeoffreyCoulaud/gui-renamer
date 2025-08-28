@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.scripts]
-gui-renamer = "main.app:main"
+gui-renamer = "pattern_renamer.main.app:main"
 
 [dependency-groups]
 dev = [

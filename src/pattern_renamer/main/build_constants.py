@@ -1,0 +1,6 @@
+APP_ID = "com.github.geoffreycoulaud.PatternRenamer.Devel"
+APP_SLUG = "pattern-renamer"
+PREFIX = "com/github/geoffreycoulaud/PatternRenamer/Devel"
+PROFILE = "development"
+PKG_DATA_DIR = "/tmp/pattern-renamer/share/pattern-renamer"
+LOCALE_DIR = "/tmp/pattern-renamer/share/locale"

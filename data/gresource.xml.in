@@ -2,7 +2,7 @@
 <gresources>
   <!-- Resources automatically loaded by Adw.Application -->
   <gresource prefix="@PREFIX@/gtk">
-    <file alias="style-dark.css">../src/main/styles/style.css</file>
-    <file      alias="style.css">../src/main/styles/style-dark.css</file>
+    <file alias="style.css">../src/pattern_renamer/main/styles/style-dark.css</file>
+    <file alias="style-dark.css">../src/pattern_renamer/main/styles/style.css</file>
   </gresource>
 </gresources>

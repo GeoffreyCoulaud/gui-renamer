@@ -18,8 +18,8 @@ install_data(
     'app.py',
     'main_model.py',
   ],
-  install_dir: moduledir,
+  install_dir: moduledir / 'main',
 )
-install_subdir('styles', install_dir: moduledir)
-install_subdir('types', install_dir: moduledir)
-install_subdir('ui', install_dir: moduledir)
+install_subdir('styles', install_dir: moduledir / 'main')
+install_subdir('types', install_dir: moduledir / 'main')
+install_subdir('ui', install_dir: moduledir / 'main')

@@ -7,9 +7,9 @@ import unicodedata
 from gi.repository import GObject  # type: ignore
 from pathvalidate import ValidationError, validate_filepath
 
-from main.types.app_state import AppState
-from main.types.rename_target import RenameTarget
-from main.types.mistakes import (
+from pattern_renamer.main.types.app_state import AppState
+from pattern_renamer.main.types.rename_target import RenameTarget
+from pattern_renamer.main.types.mistakes import (
     DuplicateMistake,
     ExistsMistake,
     InvalidDestinationMistake,
