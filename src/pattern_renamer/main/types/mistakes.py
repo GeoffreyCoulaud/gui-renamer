@@ -22,8 +22,8 @@ class InvalidRegexMistake(Mistake):
 
     def __init__(self):
         super().__init__(
-            message="Provided regex is invalid",
-            fix_action="Edit",
+            message=_("Provided regex is invalid"),
+            fix_action=_("Edit"),
         )
 
 
@@ -32,8 +32,8 @@ class InvalidReplacePatternMistake(Mistake):
 
     def __init__(self):
         super().__init__(
-            message="Provided replace pattern is invalid",
-            fix_action="Edit",
+            message=_("Provided replace pattern is invalid"),
+            fix_action=_("Edit"),
         )
 
 
@@ -43,7 +43,7 @@ class RenameDestinationMistake(Mistake, ABC):
     culprit_index: int
 
     def __init__(self, message: str, culprit_index: int):
-        super().__init__(message=message, fix_action="View")
+        super().__init__(message=message, fix_action=_("View"))
         self.culprit_index = culprit_index
 
 
@@ -52,7 +52,7 @@ class InvalidDestinationMistake(RenameDestinationMistake):
 
     def __init__(self, culprit_index: int):
         super().__init__(
-            message="Rename destination is invalid",
+            message=_("Rename destination is invalid"),
             culprit_index=culprit_index,
         )
 
@@ -62,7 +62,7 @@ class DuplicateMistake(RenameDestinationMistake):
 
     def __init__(self, culprit_index: int):
         super().__init__(
-            message="Several items would be renamed to the same destination path",
+            message=_("Several items would be renamed to the same destination path"),
             culprit_index=culprit_index,
         )
 
@@ -72,6 +72,6 @@ class ExistsMistake(RenameDestinationMistake):
 
     def __init__(self, culprit_index: int):
         super().__init__(
-            message="Renaming conflicts with an existing path",
+            message=_("Renaming conflicts with an existing path"),
             culprit_index=culprit_index,
         )

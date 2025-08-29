@@ -15,7 +15,9 @@ class RenamedPage(Adw.NavigationPage):
     TAG = "renamed-page"
 
     def __build(self) -> None:
-        header = Adw.HeaderBar + Children(Adw.WindowTitle + Properties(title="Renamed"))
+        header = Adw.HeaderBar + Children(
+            Adw.WindowTitle + Properties(title=_("Renamed"))
+        )
         content = build(
             Adw.Clamp
             + Properties(
@@ -27,8 +29,10 @@ class RenamedPage(Adw.NavigationPage):
             + Children(
                 Adw.StatusPage
                 + Properties(
-                    title="Files Renamed",
-                    description="You may undo the renaming or select new files to rename.",
+                    title=_("Files Renamed"),
+                    description=_(
+                        "You may undo the renaming or select new files to rename."
+                    ),
                     icon_name="checkmark-symbolic",
                 )
                 + Children(
@@ -39,13 +43,13 @@ class RenamedPage(Adw.NavigationPage):
                         + Properties(
                             css_classes=["pill"],
                             action_name=f"app.{ActionNames.UNDO_RENAMING}",
-                            label="Undo renaming",
+                            label=_("Undo renaming"),
                         ),
                         Gtk.Button
                         + Properties(
                             css_classes=["suggested-action", "pill"],
                             action_name=f"app.{ActionNames.PICK_FILES}",
-                            label="Select new files",
+                            label=_("Select new files"),
                         ),
                     )
                 )
@@ -53,7 +57,7 @@ class RenamedPage(Adw.NavigationPage):
         )
 
         self.set_can_pop(False)
-        self.set_title("Renamed")
+        self.set_title(_("Renamed"))
         self.set_tag(self.TAG)
         self.set_child(
             build(

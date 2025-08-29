@@ -122,17 +122,17 @@ class RenamingPage(Adw.NavigationPage):
     def __get_menu_model(self) -> Gio.Menu:
         # Create a radio menu with 3 items for rename target selection.
         rename_target_action = f"app.{ActionNames.RENAME_TARGET}"
-        full = Gio.MenuItem.new(label="Full path")
+        full = Gio.MenuItem.new(label=_("Full path"))
         full.set_action_and_target_value(
             action=rename_target_action,
             target_value=GLib.Variant.new_string(RenameTarget.FULL),
         )
-        name = Gio.MenuItem.new(label="File name")
+        name = Gio.MenuItem.new(label=_("File name"))
         name.set_action_and_target_value(
             action=rename_target_action,
             target_value=GLib.Variant.new_string(RenameTarget.NAME),
         )
-        stem = Gio.MenuItem.new(label="File name, without extention")
+        stem = Gio.MenuItem.new(label=_("File name, without extention"))
         stem.set_action_and_target_value(
             action=rename_target_action,
             target_value=GLib.Variant.new_string(RenameTarget.STEM),
@@ -146,7 +146,7 @@ class RenamingPage(Adw.NavigationPage):
         menu = Gio.Menu()
         menu.append_item(
             Gio.MenuItem.new_section(
-                label="Rename target",
+                label=_("Rename target"),
                 section=rename_target_menu,
             )
         )
@@ -168,7 +168,7 @@ class RenamingPage(Adw.NavigationPage):
             Gtk.Button
             + Properties(
                 action_name=f"app.{ActionNames.APPLY_RENAMING}",
-                tooltip_text="Rename files with the current settings",
+                tooltip_text=_("Rename files with the current settings"),
             )
             + Children(
                 Adw.ButtonContent
@@ -177,26 +177,26 @@ class RenamingPage(Adw.NavigationPage):
         )
         header = (
             Adw.HeaderBar
-            + Children(Adw.WindowTitle + Properties(title="Renamer"))
+            + Children(Adw.WindowTitle + Properties(title=_("Renamer")))
             + TypedChild("end", Gtk.Box + Children(apply_button, menu_button))
         )
 
         # Collapsible info banner
         self.__info_banner = build(
             Adw.Banner
-            + Properties(css_classes=["warning"], button_label="View")
+            + Properties(css_classes=["warning"], button_label=_("View"))
             + Handlers(button_clicked=self.__on_mistake_banner_button_clicked)
         )
 
         # Regex section
         self.__regex_editable = build(
             Adw.EntryRow
-            + Properties(title="Regex Pattern", css_classes=["monospace"])
+            + Properties(title=_("Regex Pattern"))
             + Handlers(changed=self.__on_regex_changed)
         )
         self.__replace_pattern_editable = build(
             Adw.EntryRow
-            + Properties(title="Replace Pattern", css_classes=["monospace"])
+            + Properties(title=_("Replace Pattern"))
             + Handlers(changed=self.__on_replace_pattern_changed)
         )
         regex_section = build(
@@ -253,7 +253,7 @@ class RenamingPage(Adw.NavigationPage):
         # Assemble the page
         self.set_can_pop(True)
         self.set_tag(self.TAG)
-        self.set_title("Rename")
+        self.set_title(_("Rename"))
         self.set_child(content)
 
     def __init__(self):

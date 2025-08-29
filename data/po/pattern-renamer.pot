@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pattern-renamer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-29 01:47+0200\n"
+"POT-Creation-Date: 2025-08-29 23:22+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,5 +18,106 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: src/pattern_renamer/main/app.py:57
+#: src/pattern_renamer/main/ui/empty_page.py:43
 msgid "Select files to rename"
+msgstr ""
+
+#: src/pattern_renamer/main/types/mistakes.py:25
+msgid "Provided regex is invalid"
+msgstr ""
+
+#: src/pattern_renamer/main/types/mistakes.py:26
+#: src/pattern_renamer/main/types/mistakes.py:36
+msgid "Edit"
+msgstr ""
+
+#: src/pattern_renamer/main/types/mistakes.py:35
+msgid "Provided replace pattern is invalid"
+msgstr ""
+
+#: src/pattern_renamer/main/types/mistakes.py:46
+#: src/pattern_renamer/main/ui/renaming_page.py:187
+msgid "View"
+msgstr ""
+
+#: src/pattern_renamer/main/types/mistakes.py:55
+msgid "Rename destination is invalid"
+msgstr ""
+
+#: src/pattern_renamer/main/types/mistakes.py:65
+msgid "Several items would be renamed to the same destination path"
+msgstr ""
+
+#: src/pattern_renamer/main/types/mistakes.py:75
+msgid "Renaming conflicts with an existing path"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/empty_page.py:19
+#: src/pattern_renamer/main/ui/renaming_page.py:180
+msgid "Renamer"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/empty_page.py:32
+msgid "No files selected"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/empty_page.py:33
+msgid "Start renaming by first selecting files"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/empty_page.py:50
+msgid "Select Files"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renamed_page.py:19
+#: src/pattern_renamer/main/ui/renamed_page.py:60
+msgid "Renamed"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renamed_page.py:32
+msgid "Files Renamed"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renamed_page.py:34
+msgid "You may undo the renaming or select new files to rename."
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renamed_page.py:46
+msgid "Undo renaming"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renamed_page.py:52
+msgid "Select new files"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renaming_page.py:125
+msgid "Full path"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renaming_page.py:130
+msgid "File name"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renaming_page.py:135
+msgid "File name, without extention"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renaming_page.py:149
+msgid "Rename target"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renaming_page.py:171
+msgid "Rename files with the current settings"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renaming_page.py:194
+msgid "Regex Pattern"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renaming_page.py:199
+msgid "Replace Pattern"
+msgstr ""
+
+#: src/pattern_renamer/main/ui/renaming_page.py:256
+msgid "Rename"
 msgstr ""
