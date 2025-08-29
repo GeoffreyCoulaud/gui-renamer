@@ -31,7 +31,7 @@ A simple GUI file renamer using regexes built with python, GTK and LibAdwaita.
    uv sync
    ```
 
-4. Setup, compile and install meson
+4. Setup, compile and install
    ```sh
    meson setup build
    meson compile -C build
