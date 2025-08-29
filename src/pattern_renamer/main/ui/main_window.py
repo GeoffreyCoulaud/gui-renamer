@@ -1,16 +1,16 @@
-from gi.repository import Adw, GObject, Gtk, Gdk  # type: ignore
+from gi.repository import Adw, Gdk, GObject, Gtk  # type: ignore
 
+from pattern_renamer.main.build_constants import PROFILE
+from pattern_renamer.main.types.app_state import AppState
+from pattern_renamer.main.types.mistakes import Mistake
 from pattern_renamer.main.ui.empty_page import EmptyPage
 from pattern_renamer.main.ui.renamed_page import RenamedPage
 from pattern_renamer.main.ui.renaming_page import RenamingPage
-from pattern_renamer.main.types.app_state import AppState
-from pattern_renamer.main.types.mistakes import Mistake
 from pattern_renamer.main.ui.widget_builder.widget_builder import (
     Children,
     InboundProperty,
     build,
 )
-from pattern_renamer.main.build_constants import PROFILE
 
 
 class MainWindow(Adw.ApplicationWindow):

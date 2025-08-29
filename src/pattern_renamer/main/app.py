@@ -1,11 +1,11 @@
 # ruff: noqa: E402
 
-import sys
-from typing import cast
+import gettext
+import locale
 import os
 import signal
-import locale
-import gettext
+import sys
+from typing import cast
 
 import gi  # type: ignore
 
@@ -14,14 +14,14 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, GObject, Gtk  # type: ignore
 
 from pattern_renamer.main.build_constants import (
-    PKG_DATA_DIR,
-    LOCALE_DIR,
-    APP_SLUG,
     APP_ID,
+    APP_SLUG,
+    LOCALE_DIR,
+    PKG_DATA_DIR,
 )  # type: ignore
-from pattern_renamer.main.ui.main_window import MainWindow
-from pattern_renamer.main.types.action_names import ActionNames
 from pattern_renamer.main.main_model import MainModel
+from pattern_renamer.main.types.action_names import ActionNames
+from pattern_renamer.main.ui.main_window import MainWindow
 from pattern_renamer.main.ui.widget_builder.widget_builder import (  # type: ignore
     Arguments,
     InboundProperty,

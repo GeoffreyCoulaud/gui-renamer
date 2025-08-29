@@ -1,15 +1,14 @@
 import re
+import unicodedata
 from collections import defaultdict
 from pathlib import Path
 from re import Pattern
-import unicodedata
 
-from gi.repository import GObject, Gio  # type: ignore
+from gi.repository import Gio, GObject  # type: ignore
 from pathvalidate import ValidationError, validate_filepath
 
 from pattern_renamer.main.build_constants import APP_ID
 from pattern_renamer.main.types.app_state import AppState
-from pattern_renamer.main.types.rename_target import RenameTarget
 from pattern_renamer.main.types.mistakes import (
     DuplicateMistake,
     ExistsMistake,
@@ -18,6 +17,7 @@ from pattern_renamer.main.types.mistakes import (
     InvalidReplacePatternMistake,
     Mistake,
 )  # type: ignore
+from pattern_renamer.main.types.rename_target import RenameTarget
 
 
 class MainModel(GObject.Object):
