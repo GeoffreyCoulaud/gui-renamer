@@ -116,11 +116,11 @@ class RenameItemWidget(Gtk.CenterBox):
         self.set_center_widget(self.__separator)
         self.set_end_widget(self.__wrap_label_for_sizing(self.__renamed_label))
 
-        self.add_css_class("rename-item")
         if self.__mistake:
             self.add_css_class("error")
 
     def __init__(self) -> None:
+        self.set_css_name("rename-item")
         super().__init__()
         self.__build()
 

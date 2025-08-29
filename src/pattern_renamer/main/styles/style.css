@@ -2,19 +2,19 @@
     background-color: rgba(0, 0, 0, 0.025);
 }
 
-#items-list-view .rename-item {
+#items-list-view rename-item {
     padding: 8px 12px;
 }
 
-#items-list-view>row:first-child .rename-item {
+#items-list-view>row:first-child rename-item {
     padding-top: 12px;
 }
 
-#items-list-view>row:last-child .rename-item {
+#items-list-view>row:last-child rename-item {
     padding-bottom: 12px;
 }
 
-.rename-item .separator {
+rename-item .separator {
     margin-right: 6px;
     margin-left: 6px;
     opacity: var(--dim-opacity);
