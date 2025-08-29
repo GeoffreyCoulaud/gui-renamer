@@ -191,7 +191,7 @@ class RenamingPage(Adw.NavigationPage):
         # Regex section
         self.__regex_editable = build(
             Adw.EntryRow
-            + Properties(title=_("Regex Pattern"))
+            + Properties(title=_("Regular Expression"))
             + Handlers(changed=self.__on_regex_changed)
         )
         self.__replace_pattern_editable = build(

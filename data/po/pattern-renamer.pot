@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pattern-renamer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-29 23:34+0200\n"
+"POT-Creation-Date: 2025-08-30 01:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: src/pattern_renamer/main/app.py:57
-#: src/pattern_renamer/main/ui/empty_page.py:43
 msgid "Select files to rename"
 msgstr ""
 
@@ -65,7 +64,8 @@ msgstr ""
 msgid "Start renaming by first selecting files"
 msgstr ""
 
-#: src/pattern_renamer/main/ui/empty_page.py:50
+#: src/pattern_renamer/main/ui/empty_page.py:42
+#: src/pattern_renamer/main/ui/empty_page.py:48
 msgid "Select Files"
 msgstr ""
 
@@ -111,7 +111,7 @@ msgid "Rename files with the current settings"
 msgstr ""
 
 #: src/pattern_renamer/main/ui/renaming_page.py:194
-msgid "Regex Pattern"
+msgid "Regular Expression"
 msgstr ""
 
 #: src/pattern_renamer/main/ui/renaming_page.py:199

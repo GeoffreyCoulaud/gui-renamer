@@ -39,9 +39,7 @@ class EmptyPage(Adw.NavigationPage):
                         css_classes=["suggested-action", "pill"],
                         action_name=f"app.{ActionNames.PICK_FILES}",
                     )
-                    + Children(
-                        Gtk.Label + Properties(label=_("Select files to rename"))
-                    )
+                    + Children(Gtk.Label + Properties(label=_("Select Files")))
                 )
             )
         )

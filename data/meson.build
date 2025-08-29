@@ -11,7 +11,11 @@ gnome.compile_resources(
 )
 
 desktop_file = i18n.merge_file(
-  input: 'desktop.in',
+  input: configure_file(
+    input: 'desktop.in',
+    output: '@0@.desktop.in'.format(app_id),
+    configuration: conf,
+  ),
   output: '@0@.desktop'.format(app_id),
   type: 'desktop',
   po_dir: 'po',

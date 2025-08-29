@@ -8,24 +8,23 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pattern-renamer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-29 23:34+0200\n"
-"PO-Revision-Date: 2025-08-29 23:43+0200\n"
+"POT-Creation-Date: 2025-08-30 01:14+0200\n"
+"PO-Revision-Date: 2025-08-30 01:15+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fr_FR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.7\n"
 
 #: src/pattern_renamer/main/app.py:57
-#: src/pattern_renamer/main/ui/empty_page.py:43
 msgid "Select files to rename"
 msgstr "Sélectionner des fichiers à renommer"
 
 #: src/pattern_renamer/main/types/mistakes.py:25
 msgid "Provided regex is invalid"
-msgstr "La regex entrée est invalide"
+msgstr "L'expression régulière entrée est invalide"
 
 #: src/pattern_renamer/main/types/mistakes.py:26
 #: src/pattern_renamer/main/types/mistakes.py:36
@@ -47,7 +46,7 @@ msgstr "La destination de renommage est invalide"
 
 #: src/pattern_renamer/main/types/mistakes.py:65
 msgid "Several items would be renamed to the same destination path"
-msgstr "Plusieurs entrées seraient renommées identiquement"
+msgstr "Plusieurs entrées auraient le même chemin de destination"
 
 #: src/pattern_renamer/main/types/mistakes.py:75
 msgid "Renaming conflicts with an existing path"
@@ -60,13 +59,14 @@ msgstr "Renommeur par Motifs"
 
 #: src/pattern_renamer/main/ui/empty_page.py:32
 msgid "No files selected"
-msgstr "Pas de fichiers sélectionnés"
+msgstr "Aucun fichier sélectionné"
 
 #: src/pattern_renamer/main/ui/empty_page.py:33
 msgid "Start renaming by first selecting files"
 msgstr "Commencez à renommer en sélectionnant des fichiers"
 
-#: src/pattern_renamer/main/ui/empty_page.py:50
+#: src/pattern_renamer/main/ui/empty_page.py:42
+#: src/pattern_renamer/main/ui/empty_page.py:48
 msgid "Select Files"
 msgstr "Sélectionner des fichiers"
 
@@ -114,13 +114,16 @@ msgid "Rename files with the current settings"
 msgstr "Renommer les fichiers avec ces paramètres"
 
 #: src/pattern_renamer/main/ui/renaming_page.py:194
-msgid "Regex Pattern"
-msgstr "Motif regex"
+msgid "Regular Expression"
+msgstr "Expression Régulière"
 
 #: src/pattern_renamer/main/ui/renaming_page.py:199
 msgid "Replace Pattern"
-msgstr "Motif de remplacement"
+msgstr "Motif de Remplacement"
 
 #: src/pattern_renamer/main/ui/renaming_page.py:256
 msgid "Rename"
 msgstr "Renommer"
+
+#~ msgid "Regex Pattern"
+#~ msgstr "Expression Régulière"
