@@ -1,8 +1,8 @@
 #!@PYTHON@
 
 import sys
-from pattern_renamer.main.app import main
+sys.path.insert(1, "@PYTHONDIR@")
 
 if __name__ == '__main__':
-    sys.path.insert(1, "@PYTHONDIR@")
+    from pattern_renamer.main.app import main
     sys.exit(main())

@@ -20,6 +20,5 @@ install_data(
   ],
   install_dir: moduledir / 'main',
 )
-install_subdir('styles', install_dir: moduledir / 'main')
 install_subdir('types', install_dir: moduledir / 'main')
 install_subdir('ui', install_dir: moduledir / 'main')
