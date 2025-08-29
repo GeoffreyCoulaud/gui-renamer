@@ -10,6 +10,7 @@ from pattern_renamer.main.ui.widget_builder.widget_builder import (
     InboundProperty,
     build,
 )
+from pattern_renamer.main.build_constants import PROFILE
 
 
 class MainWindow(Adw.ApplicationWindow):
@@ -83,6 +84,9 @@ class MainWindow(Adw.ApplicationWindow):
         )
         self.set_content(self.__navigation)
         self.set_default_size(800, 600)
+
+        if PROFILE == "development":
+            self.add_css_class("devel")
 
     def __setup_drop_target(self) -> None:
         """Setup drop target to accept file drops"""
