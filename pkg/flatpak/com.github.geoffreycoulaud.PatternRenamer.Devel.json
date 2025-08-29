@@ -1,5 +1,5 @@
 {
-    "id": "com.github.geoffreycoulaud.PatternRenamer",
+    "id": "com.github.geoffreycoulaud.PatternRenamer.Devel",
     "runtime": "org.gnome.Platform",
     "runtime-version": "48",
     "sdk": "org.gnome.Sdk",
@@ -27,10 +27,14 @@
             "name": "pattern-renamer",
             "builddir": true,
             "buildsystem": "meson",
+            "run-tests": true,
+            "config-opts": [
+                "-Dprofile=development"
+            ],
             "sources": [
                 {
                     "type": "dir",
-                    "path": "src"
+                    "path": "../../src"
                 }
             ],
             "modules": [

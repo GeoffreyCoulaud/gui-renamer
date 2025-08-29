@@ -4,9 +4,10 @@ from pathlib import Path
 from re import Pattern
 import unicodedata
 
-from gi.repository import GObject  # type: ignore
+from gi.repository import GObject, Gio  # type: ignore
 from pathvalidate import ValidationError, validate_filepath
 
+from pattern_renamer.main.build_constants import APP_ID
 from pattern_renamer.main.types.app_state import AppState
 from pattern_renamer.main.types.rename_target import RenameTarget
 from pattern_renamer.main.types.mistakes import (
@@ -21,6 +22,9 @@ from pattern_renamer.main.types.mistakes import (
 
 class MainModel(GObject.Object):
     """MVC model for the main application logic."""
+
+    __gschema: Gio.Settings
+    """Persistent settings storage"""
 
     # --- Inbound properties
 
@@ -81,6 +85,15 @@ class MainModel(GObject.Object):
     def __init__(self):
         super().__init__()
         self.__picked_paths = []
+
+        # Bind the persistent settings
+        self.__gschema = Gio.Settings.new(APP_ID)
+        self.__gschema.bind(
+            key="rename-target",
+            object=self,
+            property="rename-target",
+            flags=Gio.SettingsBindFlags.DEFAULT,
+        )
 
     def _normalize_utf8(self, string: str) -> str:
         """
