@@ -3,5 +3,6 @@
   <!-- Resources automatically loaded by Adw.Application -->
   <gresource prefix="@PREFIX@">
     <file alias="style.css">../src/pattern_renamer/main/styles/style.css</file>
+    <file alias="style-dark.css">../src/pattern_renamer/main/styles/style-dark.css</file>
   </gresource>
 </gresources>

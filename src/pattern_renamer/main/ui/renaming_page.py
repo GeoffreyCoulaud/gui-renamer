@@ -218,6 +218,7 @@ class RenamingPage(Adw.NavigationPage):
         self.__items_list_view = build(
             Gtk.ListView
             + Properties(
+                name="items-list-view",
                 css_classes=["card"],
                 model=self.__items_selection_model,
                 factory=self.__items_signal_factory,
@@ -225,6 +226,7 @@ class RenamingPage(Adw.NavigationPage):
                 margin_bottom=margin,
                 margin_start=margin,
                 margin_end=margin,
+                show_separators=True,
             )
         )
         items_view = build(
@@ -324,8 +326,6 @@ class RenamingPage(Adw.NavigationPage):
             rename_item_data = RenameItemData(
                 picked_path=transform(picked),
                 renamed_path=transform(renamed),
-                index=i,
-                count=len(self.__picked_paths),
                 mistake=self.__indexed_rename_destination_mistakes.get(i),
             )
             self.__items_model.append(rename_item_data)

@@ -1,5 +1,5 @@
 #items-list-view>row:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.025);
+    background-color: rgba(0, 0, 0, 0.1);
 }
 
 #items-list-view .rename-item {
