@@ -2,7 +2,7 @@
 <schemalist gettext-domain="@APP_SLUG@">
 	<schema id="@APP_ID@" path="@PREFIX@">
 		<key name="rename-target" type="s">
-			<default>name</default>
+			<default>"name"</default>
 		</key>
 	</schema>
 </schemalist>

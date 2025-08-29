@@ -21,10 +21,10 @@ libexecdir = join_paths(get_option('prefix'), get_option('libexecdir'))
 profile = get_option('profile')
 if profile == 'development'
   app_id = 'com.github.geoffreycoulaud.PatternRenamer.Devel'
-  prefix = 'com/github/geoffreycoulaud/PatternRenamer/Devel'
+  prefix = '/com/github/geoffreycoulaud/PatternRenamer/Devel/'
 elif profile == 'release'
   app_id = 'com.github.geoffreycoulaud.PatternRenamer'
-  prefix = 'com/github/geoffreycoulaud/PatternRenamer'
+  prefix = '/com/github/geoffreycoulaud/PatternRenamer/'
 endif
 app_executable_name = 'pattern-renamer'
 app_slug = 'pattern-renamer'

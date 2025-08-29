@@ -28,7 +28,7 @@ appstream_file = i18n.merge_file(
   input: configure_file(
     input: 'metainfo.xml.in',
     output: '@0@.metainfo.xml.in'.format(app_id),
-    configuration: conf
+    configuration: conf,
   ),
   output: '@0@.metainfo.xml'.format(app_id),
   po_dir: 'po',
@@ -44,22 +44,25 @@ if appstreamcli.found()
   )
 endif
 
+gschema_file = configure_file(
+  input: 'gschema.xml.in',
+  output: '@0@.gschema.xml'.format(app_id),
+  configuration: conf,
+)
 
 install_data(
-  configure_file(
-    input: 'gschema.xml.in',
-    output: '@0@.gschema.xml'.format(app_id),
-    configuration: conf
-  ),
+  gschema_file,
   install_dir: get_option('datadir') / 'glib-2.0' / 'schemas',
 )
 
 compile_schemas = find_program('glib-compile-schemas', required: false)
 if compile_schemas.found()
+  # Validate the generated schema file with strict checking
+  # This will catch issues like invalid paths, malformed XML, and type errors
   test(
     'Validate schema file',
     compile_schemas,
-    args: ['--strict', '--dry-run', meson.current_source_dir()],
+    args: ['--strict', '--dry-run', meson.current_build_dir()],
   )
 endif
 
