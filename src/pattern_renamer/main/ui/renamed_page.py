@@ -34,6 +34,7 @@ class RenamedPage(Adw.NavigationPage):
                         "You may undo the renaming or select new files to rename."
                     ),
                     icon_name="checkmark-symbolic",
+                    css_classes=["success"],
                 )
                 + Children(
                     Gtk.Box

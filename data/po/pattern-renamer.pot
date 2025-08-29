@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: pattern-renamer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-29 23:22+0200\n"
+"POT-Creation-Date: 2025-08-29 23:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -54,7 +54,7 @@ msgstr ""
 
 #: src/pattern_renamer/main/ui/empty_page.py:19
 #: src/pattern_renamer/main/ui/renaming_page.py:180
-msgid "Renamer"
+msgid "Pattern Renamer"
 msgstr ""
 
 #: src/pattern_renamer/main/ui/empty_page.py:32
@@ -70,7 +70,7 @@ msgid "Select Files"
 msgstr ""
 
 #: src/pattern_renamer/main/ui/renamed_page.py:19
-#: src/pattern_renamer/main/ui/renamed_page.py:60
+#: src/pattern_renamer/main/ui/renamed_page.py:61
 msgid "Renamed"
 msgstr ""
 
@@ -82,11 +82,11 @@ msgstr ""
 msgid "You may undo the renaming or select new files to rename."
 msgstr ""
 
-#: src/pattern_renamer/main/ui/renamed_page.py:46
+#: src/pattern_renamer/main/ui/renamed_page.py:47
 msgid "Undo renaming"
 msgstr ""
 
-#: src/pattern_renamer/main/ui/renamed_page.py:52
+#: src/pattern_renamer/main/ui/renamed_page.py:53
 msgid "Select new files"
 msgstr ""
 

@@ -16,7 +16,7 @@ class EmptyPage(Adw.NavigationPage):
 
     def __build(self) -> None:
         header = Adw.HeaderBar + Children(
-            Adw.WindowTitle + Properties(title=_("Renamer"))
+            Adw.WindowTitle + Properties(title=_("Pattern Renamer"))
         )
         content = build(
             Adw.Clamp

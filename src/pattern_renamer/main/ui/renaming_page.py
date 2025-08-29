@@ -177,7 +177,7 @@ class RenamingPage(Adw.NavigationPage):
         )
         header = (
             Adw.HeaderBar
-            + Children(Adw.WindowTitle + Properties(title=_("Renamer")))
+            + Children(Adw.WindowTitle + Properties(title=_("Pattern Renamer")))
             + TypedChild("end", Gtk.Box + Children(apply_button, menu_button))
         )
 
